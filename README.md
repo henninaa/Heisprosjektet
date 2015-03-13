@@ -9,7 +9,7 @@ Oppskrift på GOPATH:
  - export GOPATH=$(pwd)
 ferdig med gopath
 
-Oppskrift på git setup:
+Oppskrift på Git setup:
 ---------------------------
 Først:
  - cd til rett mappe
