@@ -22,6 +22,7 @@ Må kanskje gjøre dette:
 
 Hvis du har noen filer må du committe:
  - git commit -m "NAVNET PÅ COMMITEN"
+ - 
 Hvis det står noe i rødt skriv begge eller en av disse:
  - git add '*'
  - git stage '*'
