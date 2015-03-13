@@ -1,10 +1,10 @@
 # Heisprosjektet
 ====================
-
 Oppskrift på GOPATH:
 --------------------
  - cd til rett mappe type "go":
  - export GOPATH=$(pwd)
+
 ferdig med gopath
 
 Oppskrift på Git setup:
