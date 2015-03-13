@@ -1,7 +1,7 @@
 package queue_module
 
 import (
-	. "driver_elev"
+	. "driver_module"
 	"encoding/json"
 	"math"
 	//"debug_elevator"
@@ -25,26 +25,37 @@ func Queue_insert(insert_floor int, insert_type Elev_button_type_t, current_floo
 	prev := current_floor
 	var direction Elev_button_type_t
 
-	if(prev == insert_floor){return}
-
 	for i := 0; i < QUEUE_SIZE; i++ {
 
-		if(queue[i] == -1){
-			queue[i] = insert_floor
-		}else if(queue[i] == insert_floor){
-			break;
-		}
+		if(queue[i] == insert_floor){
+			break
 
-		if(prev < queue[i]){
+		}else if(queue[i] == -1){
+			queue[i] = insert_floor
+			break
+
+		}else if(prev < queue[i]){
 			direction = BUTTON_CALL_UP
+
+			if(insert_floor < queue[i] && insert_floor > prev){
+				if(insert_type == direction || insert_type == BUTTON_COMMAND){
+				queue_insert_to_pos(insert_floor, insert_type, i, queue)
+				break
+				}	
+			}
+
 		} else{
 			direction = BUTTON_CALL_DOWN
+		
+			if(insert_floor > queue[i] && insert_floor < prev){
+				if(insert_type == direction || insert_type == BUTTON_COMMAND){
+				queue_insert_to_pos(insert_floor, insert_type, i, queue)
+				break
+				}	
+			}
 		}
 
-		if(insert_type == direction || insert_type == BUTTON_COMMAND){
-			queue_insert_to_pos(insert_floor, insert_type, i, queue)
-			break
-		}
+		prev = queue[i]
 
 	}
 }
@@ -57,25 +68,34 @@ func Get_insertion_cost(insert_floor int, insert_type int, current_floor int, qu
 
 	for i := 0; i < QUEUE_SIZE; i++ {
 
-		if(queue[i] == -1){
-			break;
-		}
+		if(queue[i] == insert_floor){
+			break
 
-		if(prev < queue[i]){
+		}else if(queue[i] == -1){
+			break
+
+		}else if(prev < queue[i]){
 			direction = BUTTON_CALL_UP
+
+			if(insert_floor < queue[i] && insert_floor > prev){
+				if(insert_type == direction || insert_type == BUTTON_COMMAND){
+				break
+				}	
+			}
+
 		} else{
 			direction = BUTTON_CALL_DOWN
+		
+			if(insert_floor > queue[i] && insert_floor < prev){
+				if(insert_type == direction || insert_type == BUTTON_COMMAND){
+				break
+				}	
+			}
 		}
 		
-
-		if(insert_type == direction || insert_type == BUTTON_COMMAND){
-			break;
-		} else{
-			cost += int(math.Abs(float64(prev - queue[i])))
-		}
-
+		cost += int(math.Abs(float64(prev - queue[i])))
 		prev = queue[i]
-	
+
 	}
 
 	cost += int(math.Abs(float64(prev - insert_floor)))
@@ -94,7 +114,9 @@ func Init_queue()(queue [QUEUE_SIZE]int){
 }
 
 func One_direction(current_floor int, queue * [QUEUE_SIZE]int) int{
-	if(current_floor < queue[0]){
+	if(queue[0]==-1 ){
+		return -1
+	}else if(current_floor < queue[0]){
 		return UP
 	} else{
 		return DOWN

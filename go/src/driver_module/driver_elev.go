@@ -27,16 +27,24 @@ const (
 	BUTTON_COMMAND
 )
 
-func Elev_init(){
-	fmt.Println("Going to first defined floor...\n")
-		Elev_set_speed(false)
-		for{
-			if Elev_get_button_signal()
-		
+func Elev_init()(current_floor int){
+
 	if io_init() {
 		fmt.Println("Elevator driver initialized...\n")
-		}
 	}
+	
+	fmt.Println("Going to first defined floor...\n")
+		Elev_start_engine(false)
+		for{
+			current_floor = Elev_get_floor_sensor_signal()
+			if (current_floor != -1) {
+				Elev_stop_engine()
+				break
+			}
+		}
+	
+	
+	return current_floor
 }
 
 func Elev_get_floor_sensor_signal() int {
@@ -83,7 +91,6 @@ func Elev_set_speed(speed int){
 func Elev_start_engine(up bool){
 	
 	var speed int;
-
 	if (up){
 		io_clear_bit(MOTORDIR);
 		speed = MOTOR_SPEED

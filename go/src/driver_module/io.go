@@ -4,6 +4,7 @@ package driver_module // where "driver" is the folder that contains io.go, io.c,
 #include "io.h"
 */
 import "C"
+import	"fmt"
 
 func io_init() bool {
 	return bool(int(C.io_init()) != -1)
@@ -18,6 +19,8 @@ func io_clear_bit(channel int){
 }
 
 func io_write_analog(channel int, value int){
+	fmt.Println(value)
+	fmt.Println("write analog")
 	C.io_write_analog(C.int(channel),C.int(value))
 }
 
