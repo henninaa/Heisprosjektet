@@ -8,14 +8,12 @@ export GOPATH=$(pwd)
 
 ferdig med gopath
 
-opskrift på git setup:
-
+opskrift på git setup: \n
 cd til rett mappe
 git init
 git remote add origin "https://www.github.com/henninaa/Heisprosjektet.git"
 
-Må kanskje gjøre dette:
-
+Må kanskje gjøre dette: \n
 git config --global user.email "DIN EMAIL"
 git congfig --global user.name "DITT USERNAME"
 
