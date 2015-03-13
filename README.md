@@ -2,8 +2,10 @@
 Heisprosjektet som er aktuell fra 13 i 3
 
 oppskrift på GOPATH:
+
 cd til rett mappe type "go":
 export GOPATH=$(pwd)
+
 ferdig med gopath
 
 opskrift på git setup:
@@ -13,6 +15,7 @@ git init
 git remote add origin "https://www.github.com/henninaa/Heisprosjektet.git"
 
 Må kanskje gjøre dette:
+
 git config --global user.email "DIN EMAIL"
 git congfig --global user.name "DITT USERNAME"
 
