@@ -1,15 +1,18 @@
 # Heisprosjektet
+====================
 Heisprosjektet som er aktuell fra 13 i 3
 -----------------------------------------
 
-oppskrift på GOPATH:
+Oppskrift på GOPATH
+--------------------
 cd til rett mappe type "go":
 
 export GOPATH=$(pwd)
 
 ferdig med gopath
 
-opskrift på git setup:
+Oppskrift på git setup:
+---------------------------
 
 cd til rett mappe
 
