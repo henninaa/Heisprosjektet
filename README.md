@@ -1,7 +1,5 @@
 # Heisprosjektet
 ====================
-Heisprosjektet som er aktuell fra 13 i 3
------------------------------------------
 
 Oppskrift på GOPATH:
 --------------------
