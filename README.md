@@ -11,6 +11,7 @@ ferdig med gopath
 opskrift på git setup:
 
 cd til rett mappe
+
 git init
 git remote add origin "https://www.github.com/henninaa/Heisprosjektet.git"
 
