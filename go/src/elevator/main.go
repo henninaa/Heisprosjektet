@@ -13,3 +13,4 @@ func main(){
 	deadChan := make(chan int)
 	<-deadChan
 }
+
