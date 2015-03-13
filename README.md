@@ -15,6 +15,7 @@ Først:
  - cd til rett mappe
  - git init
  - git remote add origin "https://www.github.com/henninaa/Heisprosjektet.git"
+
 Må kanskje gjøre dette: 
  - git config --global user.email "DIN EMAIL"
  - git congfig --global user.name "DITT USERNAME"
