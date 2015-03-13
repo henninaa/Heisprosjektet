@@ -2,13 +2,14 @@
 Heisprosjektet som er aktuell fra 13 i 3
 
 oppskrift på GOPATH:
-
 cd til rett mappe type "go":
+
 export GOPATH=$(pwd)
 
 ferdig med gopath
 
-opskrift på git setup: \n
+opskrift på git setup:
+
 cd til rett mappe
 git init
 git remote add origin "https://www.github.com/henninaa/Heisprosjektet.git"
