@@ -18,7 +18,7 @@ var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
 	{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
 	{BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
 	{BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
-	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},}
+	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4}}
 
 type Elev_button_type_t int;
 const (
@@ -106,7 +106,7 @@ func Elev_stop_engine(){
 	io_write_analog(MOTOR, 0);
 }
 
-func elev_set_door_open_lamp(is_open bool){
+func Elev_set_door_open_lamp(is_open bool){
 	if(is_open){
 		io_set_bit(LIGHT_DOOR_OPEN);
 	}else{
@@ -114,11 +114,11 @@ func elev_set_door_open_lamp(is_open bool){
 	}
 }
 
-func elev_get_obstruction_signal() bool {
+func Elev_get_obstruction_signal() bool {
 	return io_read_bit(OBSTRUCTION);
 }
 
-func elev_get_stop_signal() bool {
+func Elev_get_stop_signal() bool {
 	return io_read_bit(STOP);
 }
 

@@ -10,7 +10,6 @@ import (
 var Queue [QUEUE_SIZE]int
 
 
-
 const(
 	UP = 	0x01
 	DOWN = 	0x02
