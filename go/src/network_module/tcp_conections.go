@@ -10,6 +10,9 @@ import (
 	"strings"
 	)
 
+
+
+
 func ConnectTCP(ipAdr string, port string){
 	attempts := 0
 
@@ -31,7 +34,9 @@ func ConnectTCP(ipAdr string, port string){
 				attempts++
 				time.Sleep(500 * time.Millisecond)
 			}else{
-				//Legg til socket i oversikt over oppkoblinger
+				newTCPConnection := tcpConnection{ip: ip, socket: socket}
+				internalChan.updateTCPMap <- newTCPConnection
+				break
 			}
 		}
 	}
@@ -47,6 +52,12 @@ func Listen_for_TCP_connection(){
 	fmt.Println("Network.connectTCP--> listening for new connections")
 
 
+}
+
+func cleanUpIP(garbage string) (cleanIP string) {
+        split := strings.Split(garbage, ":") //Hackjob to separate ip from local socket. (Seems like a "fault" in the net package)
+        cleanIP = split[0]
+        return
 }	
 
 func checkError(err error) bool{
