@@ -7,7 +7,7 @@ import (
 	//"debug_elevator"
 )
 
-var Queue [QUEUE_SIZE]int
+var queue [QUEUE_SIZE]int
 
 
 const(

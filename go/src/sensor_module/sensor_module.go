@@ -20,10 +20,10 @@ func Sensors(){
 
 func Sensor_init(){
 
-	Sensor_channels.stop_chan = make(chan int, 1)
-	Sensor_channels.floor_chan = make(chan int, 1)
-	Sensor_channels.order_chan = make(chan [2]int, 12)
-	Sensor_channels.obstruction_chan = make(chan bool, 1)
+	Sensor_channels.Stop_chan = make(chan int, 1)
+	Sensor_channels.Floor_chan = make(chan int, 1)
+	Sensor_channels.Order_chan = make(chan [2]int, 12)
+	Sensor_channels.Obstruction_chan = make(chan bool, 1)
 
 }
 
@@ -36,7 +36,7 @@ func stop_sensor(){
 		time.Sleep(STOP_SENSOR_INTERVAL)
 
 		if(should_take_action(driver_module.Elev_get_stop_signal(), &hold)){
-			stop_chan <- 1
+			Stop_chan <- 1
 		} 
 	}
 }
@@ -56,10 +56,10 @@ func floor_sensors(){
 
 			select{
 
-				case floor := <- Sensor_channels.floor_chan:
-					Sensor_channels.floor_chan <- current_floor
+				case floor := <- Sensor_channels.Floor_chan:
+					Sensor_channels.Floor_chan <- current_floor
 				default:
-					Sensor_channels.floor_chan <- current_floor
+					Sensor_channels.Floor_chan <- current_floor
 			}
 
 			previous_floor = current_floor
@@ -89,7 +89,7 @@ func order_buttons(){
 				}
 
 				if(should_take_action(driver_module.Elev_get_button_signal(j, i), &hold[i][j])){
-					Sensor_channels.order_chan <- {i,j}
+					Sensor_channels.Order_chan <- {i,j}
 				}
 			}
 		}
@@ -107,10 +107,10 @@ func obstruction_sensor(){
 
 			select{
 
-				case floor := <- Sensor_channels.floor_chan:
-					Sensor_channels.obstruction_chan <- current_signal
+				case floor := <- Sensor_channels.Floor_chan:
+					Sensor_channels.Obstruction_chan <- current_signal
 				default:
-					Sensor_channels.obstruction_chan <- current_signal
+					Sensor_channels.Obstruction_chan <- current_signal
 			}
 
 			previous_signal = current_signal
@@ -139,7 +139,7 @@ func Self_destruction(){
 func should_take_action(test bool, *hold bool) bool{
 
 	if(test && !hold){
-		stop_chan <- 1
+		Stop_chan <- 1
 		hold = true
 		return true
 
