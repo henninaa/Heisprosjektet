@@ -3,9 +3,12 @@ package sensor_module
 import(
 	"time"
 	"driver_module"
+	"queue_module"
+	. "debug_module"
 	)
 
-var Sensor_channels sensor_channels 
+var Sensor_channels sensor_channels
+var current_floor_gl int
 
 func Sensors(){
 
@@ -16,6 +19,8 @@ func Sensors(){
 	go order_buttons()
 	go obstruction_sensor()
 	go Self_destruction()
+
+	Debug_message("Sensors started...", "SENSORS")
 }
 
 func Sensor_init(){
@@ -36,7 +41,7 @@ func stop_sensor(){
 		time.Sleep(STOP_SENSOR_INTERVAL)
 
 		if(should_take_action(driver_module.Elev_get_stop_signal(), &hold)){
-			Stop_chan <- 1
+			Sensor_channels.Stop_chan <- 1
 		} 
 	}
 }
@@ -50,16 +55,21 @@ func floor_sensors(){
 
 		time.Sleep(FLOOR_SENSOR_INTERVAL)
 
-		current_floor = Elev_get_floor_sensor_signal()
+		current_floor = driver_module.Elev_get_floor_sensor_signal()
 
 		if(current_floor != previous_floor){
 
 			select{
 
-				case floor := <- Sensor_channels.Floor_chan:
+				case  <- Sensor_channels.Floor_chan:
 					Sensor_channels.Floor_chan <- current_floor
 				default:
 					Sensor_channels.Floor_chan <- current_floor
+			}
+
+			if(current_floor != -1){
+				current_floor_gl = current_floor
+				driver_module.Elev_set_floor_indicator(current_floor)
 			}
 
 			previous_floor = current_floor
@@ -67,12 +77,19 @@ func floor_sensors(){
 	}
 }
 
+func Floor_sensors()int{
+
+	return driver_module.Elev_get_floor_sensor_signal()
+
+}
+
 func order_buttons(){
 
-	var hold [N_FLOORS][N_BUTTONS]bool
+	var hold [driver_module.N_FLOORS][driver_module.N_BUTTONS]bool
+	var j driver_module.Elev_button_type_t
 
 	for i := 0; i < driver_module.N_FLOORS; i++{
-		for j := BUTTON_CALL_UP; j <= BUTTON_COMMAND; j++{
+		for j := driver_module.BUTTON_CALL_UP; j <= driver_module.BUTTON_COMMAND; j++{
 			hold[i][j] = false
 		}
 	}
@@ -82,14 +99,16 @@ func order_buttons(){
 		time.Sleep(ORDER_SENSORS_INTERVAL)
 
 		for i := 0; i < driver_module.N_FLOORS; i++{
-			for j := BUTTON_CALL_UP; j <= BUTTON_COMMAND; j++{
+			for j = driver_module.BUTTON_CALL_UP; j <= driver_module.BUTTON_COMMAND; j++{
 
 				if(is_floor_legal(i,j) == false){
 					continue
 				}
 
 				if(should_take_action(driver_module.Elev_get_button_signal(j, i), &hold[i][j])){
-					Sensor_channels.Order_chan <- {i,j}
+					//Sensor_channels.Order_chan <- {i,j}
+					queue_module.Queue_insert(i,j,current_floor_gl)
+
 				}
 			}
 		}
@@ -98,7 +117,9 @@ func order_buttons(){
 
 func obstruction_sensor(){
 
-	var current_signal bool
+	current_signal := driver_module.Elev_get_obstruction_signal()
+	var previous_signal bool
+	previous_signal = current_signal
 
 	for{
 		time.Sleep(OBSTRUCTION_SENSOR_INTERVAL)
@@ -107,7 +128,7 @@ func obstruction_sensor(){
 
 			select{
 
-				case floor := <- Sensor_channels.Floor_chan:
+				case <- Sensor_channels.Floor_chan:
 					Sensor_channels.Obstruction_chan <- current_signal
 				default:
 					Sensor_channels.Obstruction_chan <- current_signal
@@ -120,41 +141,40 @@ func obstruction_sensor(){
 
 func Self_destruction(){
 
-	dir := true
-
 	for{
 
 		time.Sleep(30*time.Millisecond)
 
-		if(Elev_get_floor_sensor_signal() ==3 && driver_module.Elev_get_stop_signal()){
+		if(driver_module.Elev_get_floor_sensor_signal() ==3 && driver_module.Elev_get_stop_signal()){
 
 			for{
-				dir = !dir
-				driver_module.Elev_start_engine(dir)
+				
+				driver_module.Elev_start_engine(driver_module.UP)
+				driver_module.Elev_start_engine(driver_module.DOWN)
 			}
 		}
 	}
 }
 
-func should_take_action(test bool, *hold bool) bool{
+func should_take_action(test bool, hold * bool) bool{
 
-	if(test && !hold){
-		Stop_chan <- 1
-		hold = true
+	if(test && !(*hold)){
+		Sensor_channels.Stop_chan <- 1
+		*hold = true
 		return true
 
-	} else if(!test && hold){
-		hold = false
+	} else if(!test && *hold){
+		*hold = false
 	}
 
 	return false
 
 }
 
-func is_floor_legal(int i, int j) bool{
-	if(i==0 || j == BUTTON_CALL_DOWN){
+func is_floor_legal(i int, j driver_module.Elev_button_type_t) bool{
+	if(i==0 || j == driver_module.BUTTON_CALL_DOWN){
 		return false
-	}else if(i == N_FLOORS || j == BUTTON_CALL_UP){
+	}else if(i == driver_module.N_FLOORS || j == driver_module.BUTTON_CALL_UP){
 		return false
 	}
 	return true

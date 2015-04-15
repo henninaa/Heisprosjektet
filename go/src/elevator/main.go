@@ -2,16 +2,22 @@ package main
 
 import(
 	"driver_module"
-	"network_module"
+	"queue_module"
+	"sensor_module"
+	"FSM_module"
 	)
 
 func main(){
 	
-	driver_elev.Elev_init()
+	var deadChan = make(chan int, 1)
 
-	network_module.Network()
+	driver_module.Elev_init()
+	queue_module.Init_queue()
 
-	deadChan := make(chan int)
+	go sensor_module.Sensors()
+	go FSM_module.FSM()
+
+
 	<-deadChan
 }
 

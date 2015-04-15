@@ -7,6 +7,11 @@ import(
 
 const N_BUTTONS = 3
 const N_FLOORS = 4
+const(
+	UP = 	0x01
+	DOWN = 	0x02
+	STILL = 0x03
+	)
 
 var lamp_channel_matrix = [N_FLOORS][N_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
@@ -34,7 +39,7 @@ func Elev_init()(current_floor int){
 	}
 	
 	fmt.Println("Going to first defined floor...\n")
-		Elev_start_engine(false)
+		Elev_start_engine(DOWN)
 		for{
 			current_floor = Elev_get_floor_sensor_signal()
 			if (current_floor != -1) {
@@ -88,18 +93,15 @@ func Elev_set_speed(speed int){
 	io_write_analog(MOTOR, speed);
 }
 
-func Elev_start_engine(up bool){
-	
-	var speed int;
-	if (up){
-		io_clear_bit(MOTORDIR);
-		speed = MOTOR_SPEED
+func Elev_start_engine(direction int){
+
+	if (direction == UP){
+		io_clear_bit(MOTORDIR)
 	}else {
-		io_set_bit(MOTORDIR);
-		speed = MOTOR_SPEED
+		io_set_bit(MOTORDIR)
 	}
 	
-	io_write_analog(MOTOR, speed);
+	io_write_analog(MOTOR, MOTOR_SPEED);
 }
 
 func Elev_stop_engine(){
@@ -122,7 +124,7 @@ func Elev_get_stop_signal() bool {
 	return io_read_bit(STOP);
 }
 
-func set_stop_lamp(stop bool){
+func Set_stop_lamp(stop bool){
 	if(stop){
 		io_set_bit(LIGHT_STOP);
 	}else{
@@ -133,7 +135,7 @@ func set_stop_lamp(stop bool){
 
 
 
-func elev_set_floor_indicator(floor int){
+func Elev_set_floor_indicator(floor int){
 	//assert(floor >= 0);
 	//assert(floor < N_FLOORS);
 	// Binary encoding. One light must always be on.
@@ -151,7 +153,7 @@ func elev_set_floor_indicator(floor int){
 
 
 
-func elev_set_button_lamp(button Elev_button_type_t, floor int, value int) {
+func Elev_set_button_lamp(button Elev_button_type_t, floor int, value int) {
 	//assert(floor >= 0);
 	//assert(floor < N_FLOORS);
 	//assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS - 1));

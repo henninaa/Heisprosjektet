@@ -5,5 +5,7 @@ import(
 	)
 
 const(
-	DOOR_OPEN_TIME = 3 * time.Milliseconds
+	DOOR_OPEN_TIME = 3000 * time.Millisecond
+	FSM_INTERVAL = 30 * time.Millisecond
+	OBSTRUCTION_CONTROL_INTERVAL = 30 * time.Millisecond
 )
