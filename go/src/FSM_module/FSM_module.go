@@ -39,6 +39,7 @@ func FSM(){
 			Debug_message(string(current_floor), "FSM")
 
 			if (current_floor != -1){
+				driver_module.Elev_stop_engine()
 				state = still
 				Debug_message("gar til stille", "FSM")
 
@@ -56,7 +57,8 @@ func FSM(){
 				time.Sleep(DOOR_OPEN_TIME)
 				state = door_open
 				Debug_message("gar til door_open", "FSM")
-			}else if (direction != -1){
+
+			} else if (direction != -1){
 				driver_module.Elev_start_engine(direction)
 				state = moving
 				Debug_message("gar til moving", "FSM")
@@ -64,27 +66,31 @@ func FSM(){
 
 		case door_open:
 			
-			if(false == <- sensor_module.Sensor_channels.Obstruction_chan){
+			if(false == obstruction){
 				driver_module.Elev_set_door_open_lamp(false)
 				state = still
 				Debug_message("gar til stille", "FSM")
 			}
 
 		case moving:
+			select{
+			case current_position = <- sensor_module.Sensor_channels.Floor_chan:
 
-			current_position = <- sensor_module.Sensor_channels.Floor_chan
+				if(current_position != -1){
+					current_floor = current_position
 
-			if(current_position != -1){
-				current_floor = current_position
+					if(queue_module.Should_elevator_stop(current_floor)){
+						driver_module.Elev_stop_engine()
+						direction = -1
+						driver_module.Elev_set_door_open_lamp(true)
+						time.Sleep(DOOR_OPEN_TIME)
+						state = door_open
+						Debug_message("gar til door_open", "FSM")
+					}
+				}
+			default: 
+				continue
 			}
-
-			if(queue_module.Should_elevator_stop(current_floor)){
-				driver_module.Elev_stop_engine()
-				driver_module.Elev_set_door_open_lamp(true)
-				time.Sleep(DOOR_OPEN_TIME)
-				state = door_open
-			}
-
 		}
 
 	}
@@ -96,11 +102,19 @@ func stop_control(){
 	select{
 
 	case <- sensor_module.Sensor_channels.Stop_chan:
-		driver_module.Elev_stop_engine()
+
+		if(direction != -1){
+			driver_module.Elev_stop_engine()
+		}
+		driver_module.Elev_set_stop_lamp(true)
 		driver_module.Elev_set_door_open_lamp(true)
 		<- sensor_module.Sensor_channels.Stop_chan
 		driver_module.Elev_set_door_open_lamp(false)
-		driver_module.Elev_start_engine(direction)
+		driver_module.Elev_set_stop_lamp(false)
+
+		if(direction != -1){
+			driver_module.Elev_start_engine(direction)
+		}
 
 	default:
 		return
@@ -116,9 +130,12 @@ func obstruction_control(){
 		if (msg == true){
 			obstruction = true
 			driver_module.Elev_stop_engine()
-		}else{
+			Debug_message("treff", "obstruction_control")
+		}else if(obstruction == true){
 			obstruction = false
-			driver_module.Elev_start_engine(direction)
+			if(direction != -1){
+				driver_module.Elev_start_engine(direction)
+			}
 		}
 
 	default:

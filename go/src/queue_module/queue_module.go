@@ -4,7 +4,7 @@ import (
 	"driver_module"
 	"encoding/json"
 	"math"
-	//"debug_elevator"
+	. "debug_module"
 )
 
 var queue [QUEUE_SIZE]int
@@ -13,6 +13,8 @@ var order_lights [4][3]bool
 const QUEUE_SIZE = 12
 
 func Queue_insert(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int){
+
+	Debug_message("got queue insert " + string(insert_floor) + " " + string(current_floor), "Queue_insert")
 
 	prev := current_floor
 	var direction driver_module.Elev_button_type_t
@@ -38,6 +40,7 @@ func Queue_insert(insert_floor int, insert_type driver_module.Elev_button_type_t
 				}	
 			}
 
+
 		} else{
 			direction = driver_module.BUTTON_CALL_DOWN
 		
@@ -52,6 +55,7 @@ func Queue_insert(insert_floor int, insert_type driver_module.Elev_button_type_t
 		prev = queue[i]
 
 	}
+	Debug_message("Ferdig!", "Queue_insert")
 }
 
 func Get_insertion_cost(insert_floor int, insert_type int, current_floor int)(int){
@@ -100,13 +104,16 @@ func Get_insertion_cost(insert_floor int, insert_type int, current_floor int)(in
 
 func Init_queue()(){
 
+	var j driver_module.Elev_button_type_t
+
 	for i := 0; i < QUEUE_SIZE; i++ {
 			queue[i] = -1
 	}
 
-	for i :=0; i<4; i++{
-		for j := 0; j<3; j++{
+	for i :=0; i<driver_module.N_FLOORS; i++{
+		for j = 0; j<driver_module.N_BUTTONS; j++{
 			order_lights[i][j] = false
+			driver_module.Elev_set_button_lamp(j,i,0)
 		}
 	}
 
@@ -211,6 +218,7 @@ func turn_off_lights(floor int){
 	for order_type = 0; order_type<3; order_type++{
 
 		if(order_lights[floor][order_type]){
+			order_lights[floor][order_type] = false
 			driver_module.Elev_set_button_lamp(order_type, floor, 0)
 		}
 	}

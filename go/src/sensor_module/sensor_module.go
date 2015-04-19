@@ -5,6 +5,7 @@ import(
 	"driver_module"
 	"queue_module"
 	. "debug_module"
+	//"fmt"
 	)
 
 var Sensor_channels sensor_channels
@@ -18,7 +19,7 @@ func Sensors(){
 	go floor_sensors()
 	go order_buttons()
 	go obstruction_sensor()
-	go Self_destruction()
+	//go Self_destruction()
 
 	Debug_message("Sensors started...", "SENSORS")
 }
@@ -70,6 +71,7 @@ func floor_sensors(){
 			if(current_floor != -1){
 				current_floor_gl = current_floor
 				driver_module.Elev_set_floor_indicator(current_floor)
+				//fmt.Printf("%d", current_floor)
 			}
 
 			previous_floor = current_floor
@@ -83,10 +85,11 @@ func Floor_sensors()int{
 
 }
 
-func order_buttons(){
+/*func order_buttons_redundant(){
 
 	var hold [driver_module.N_FLOORS][driver_module.N_BUTTONS]bool
 	var j driver_module.Elev_button_type_t
+	var got_order bool
 
 	for i := 0; i < driver_module.N_FLOORS; i++{
 		for j := driver_module.BUTTON_CALL_UP; j <= driver_module.BUTTON_COMMAND; j++{
@@ -101,17 +104,43 @@ func order_buttons(){
 		for i := 0; i < driver_module.N_FLOORS; i++{
 			for j = driver_module.BUTTON_CALL_UP; j <= driver_module.BUTTON_COMMAND; j++{
 
-				if(is_floor_legal(i,j) == false){
+				if(is_floor_legal(i,j) == true){
+					//Debug_message("Got order illegal", "order_buttons")
 					continue
 				}
 
-				if(should_take_action(driver_module.Elev_get_button_signal(j, i), &hold[i][j])){
+				got_order = driver_module.Elev_get_button_signal(j, i)
+
+				if(should_take_action_array(got_order, hold, i, int(j))){
 					//Sensor_channels.Order_chan <- {i,j}
+					Debug_message("Got order", "order_buttons")
 					queue_module.Queue_insert(i,j,current_floor_gl)
 
 				}
 			}
 		}
+	}
+}*/
+
+func order_buttons(){
+
+	var hold [driver_module.N_BUTTONS][driver_module.N_FLOORS]bool
+
+	for i:= 0; i<driver_module.N_BUTTONS; i++{
+		for j:= 0; j<driver_module.N_FLOORS; j++{
+		
+		hold[i][j] = false
+		}
+	}
+
+	for{
+
+		time.Sleep(ORDER_SENSORS_INTERVAL)
+		check_command_orders(&(hold[0]))
+		check_up_orders(&(hold[1]))
+		check_down_orders(&(hold[2]))
+
+
 	}
 }
 
@@ -123,6 +152,8 @@ func obstruction_sensor(){
 
 	for{
 		time.Sleep(OBSTRUCTION_SENSOR_INTERVAL)
+
+		current_signal = driver_module.Elev_get_obstruction_signal()
 
 		if(current_signal != previous_signal){
 
@@ -159,7 +190,6 @@ func Self_destruction(){
 func should_take_action(test bool, hold * bool) bool{
 
 	if(test && !(*hold)){
-		Sensor_channels.Stop_chan <- 1
 		*hold = true
 		return true
 
@@ -171,6 +201,7 @@ func should_take_action(test bool, hold * bool) bool{
 
 }
 
+
 func is_floor_legal(i int, j driver_module.Elev_button_type_t) bool{
 	if(i==0 || j == driver_module.BUTTON_CALL_DOWN){
 		return false
@@ -178,4 +209,61 @@ func is_floor_legal(i int, j driver_module.Elev_button_type_t) bool{
 		return false
 	}
 	return true
+}
+
+func check_command_orders(hold * [driver_module.N_FLOORS]bool){
+
+	got_order := false
+	var button_type driver_module.Elev_button_type_t
+
+	button_type = driver_module.BUTTON_COMMAND
+
+	for i :=0; i < driver_module.N_FLOORS; i ++{
+		
+		got_order = driver_module.Elev_get_button_signal(button_type, i)
+
+		if(should_take_action(got_order, &(hold[i]))){
+
+			queue_module.Queue_insert(i, button_type, current_floor_gl)
+		}
+	}
+
+}
+	
+func check_up_orders(hold * [driver_module.N_FLOORS]bool){
+
+	got_order := false
+	var button_type driver_module.Elev_button_type_t
+
+	button_type = driver_module.BUTTON_CALL_UP
+
+	for i :=0; i < driver_module.N_FLOORS -1; i ++{
+		
+		got_order = driver_module.Elev_get_button_signal(button_type, i)
+
+		if(should_take_action(got_order, &(hold[i]))){
+
+			queue_module.Queue_insert(i, button_type, current_floor_gl)
+		}
+	}
+
+}
+
+func check_down_orders(hold * [driver_module.N_FLOORS]bool){
+
+	got_order := false
+	var button_type driver_module.Elev_button_type_t
+
+	button_type = driver_module.BUTTON_CALL_DOWN
+
+	for i :=1; i < driver_module.N_FLOORS; i ++{
+		
+		got_order = driver_module.Elev_get_button_signal(button_type, i)
+
+		if(should_take_action(got_order, &(hold[i]))){
+
+			queue_module.Queue_insert(i, button_type, current_floor_gl)
+		}
+	}
+
 }

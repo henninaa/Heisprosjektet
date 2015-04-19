@@ -27,9 +27,9 @@ var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
 
 type Elev_button_type_t int;
 const (
-	BUTTON_CALL_UP = 0 << iota
-	BUTTON_CALL_DOWN
-	BUTTON_COMMAND
+	BUTTON_CALL_UP = 0
+	BUTTON_CALL_DOWN = 1
+	BUTTON_COMMAND = 2
 )
 
 func Elev_init()(current_floor int){
@@ -37,7 +37,7 @@ func Elev_init()(current_floor int){
 	if io_init() {
 		fmt.Println("Elevator driver initialized...\n")
 	}
-	
+	/*
 	fmt.Println("Going to first defined floor...\n")
 		Elev_start_engine(DOWN)
 		for{
@@ -47,9 +47,9 @@ func Elev_init()(current_floor int){
 				break
 			}
 		}
+	*/
 	
-	
-	return current_floor
+	return 0
 }
 
 func Elev_get_floor_sensor_signal() int {
@@ -124,7 +124,7 @@ func Elev_get_stop_signal() bool {
 	return io_read_bit(STOP);
 }
 
-func Set_stop_lamp(stop bool){
+func Elev_set_stop_lamp(stop bool){
 	if(stop){
 		io_set_bit(LIGHT_STOP);
 	}else{
@@ -139,7 +139,7 @@ func Elev_set_floor_indicator(floor int){
 	//assert(floor >= 0);
 	//assert(floor < N_FLOORS);
 	// Binary encoding. One light must always be on.
-	if (floor == 0x02){
+	if ((floor) == 0x02){
 		io_set_bit(LIGHT_FLOOR_IND1);
 	}else{
 		io_clear_bit(LIGHT_FLOOR_IND1);
