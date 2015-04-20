@@ -39,3 +39,5 @@ type Mail struct {
 	IP  string
 	Msg []byte
 }
+
+
