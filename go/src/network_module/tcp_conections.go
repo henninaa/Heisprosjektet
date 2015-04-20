@@ -39,7 +39,7 @@ func manageTCPconnections(){
 		case <-internalChan.quitTCPmap:
 			return
 		}
-	} 
+	}
 }
 
 func (connections *connectionMap) handleNewIP(newIP string){

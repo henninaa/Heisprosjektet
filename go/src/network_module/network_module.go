@@ -6,10 +6,10 @@ import(
 		"time"
 		)
 
-func Start_network(NetChan NetChannels){
+func Start_network(externalChan NetChannels){
 	rand.Seed(time.Now().UTC().UnixNano())
 	internalChan.network_internal_chan_init()
-	externalChan = NetChan
+	//externalChan = NetChan
 	go Send_im_alive()
 	go Recieve_im_alive()
 	go Watch_im_alive()
