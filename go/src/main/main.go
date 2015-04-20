@@ -9,12 +9,13 @@ import (
 func main(){
 	var NetChan network_module.NetChannels
 
-	//go network_module.Network_external_chan_init()
+	go NetChan.Network_external_chan_init()
 	go network_module.Start_network(NetChan)
 	go repeater(NetChan)
 	for {
+		fmt.Println("Moren din ")
 		newMail := <- NetChan.Inbox
-		fmt.Println(newMail)
+		fmt.Println("Moren din 2 ",newMail)
 	}
 
 	deadChan := make(chan int)

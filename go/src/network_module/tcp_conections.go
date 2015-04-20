@@ -128,8 +128,10 @@ func (connection *tcpConnection) inbox(quitInbox chan bool) {
 	var msg [512]byte
 	for{
 		nBytes, err := connection.socket.Read(msg[0:])
+		err = nil
 		switch err{
 		case nil:
+			fmt.Println("I was never here biach")
 			newMail := Mail{IP: connection.ip, Msg: msg[0:nBytes]}
 			externalChan.Inbox <- newMail
 
