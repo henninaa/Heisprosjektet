@@ -19,6 +19,6 @@ func repeater(netChan network_module.NetChannels){
 	for {
 		mail := network_module.Mail{Msg: []byte("TST")}
 		netChan.SendToAll <- mail
-		time.Sleep(1*time.Second)
+		time.Sleep(100*time.Millisecond)
 	}
 }
