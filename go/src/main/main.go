@@ -25,6 +25,7 @@ func main(){
 func repeater(netChan network_module.NetChannels){
 	for {
 		mail := network_module.Mail{Msg: []byte("TST")}
+		fmt.Println("Repeater")
 		netChan.SendToAll <- mail
 		time.Sleep(100*time.Millisecond)
 	}

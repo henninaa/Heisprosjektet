@@ -131,9 +131,11 @@ func (connection *tcpConnection) inbox(quitInbox chan bool) {
 		err = nil
 		switch err{
 		case nil:
-			fmt.Println("I was never here biach")
+			fmt.Println("nBytes: ", nBytes, "IP: ", connection.ip, "Msg: ", msg[0:nBytes])
 			newMail := Mail{IP: connection.ip, Msg: msg[0:nBytes]}
+			fmt.Println(newMail)
 			externalChan.Inbox <- newMail
+			fmt.Println("Nei så langt kom du ikke nei!")
 
 		default:
 			fmt.Println("network.tcp_connections.inbox --> Error:", err)
@@ -188,7 +190,7 @@ func ConnectTCP(ipAdr string){
 			attempts ++
 			time.Sleep(100 * time.Millisecond)
 		}else{
-			service := ipAdr+":9191"
+			service := ipAdr + ":" + TCPport
 			randSleep := time.Duration(rand.Intn(500)+500) * time.Microsecond
 			fmt.Println("network.tcp_connections.connectTCP --> randSleep:", randSleep)
 			time.Sleep(randSleep)
@@ -207,7 +209,7 @@ func ConnectTCP(ipAdr string){
 }
 
 func Listen_for_TCP_connection(){
-	service := ":9191"
+	service := ":" + TCPport
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	if err != nil {

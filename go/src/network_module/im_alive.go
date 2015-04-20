@@ -9,12 +9,12 @@ import (
 
 func Send_im_alive() {
 	service := bcast + ":" + UDPport
-	addr, err := net.ResolveUDPAddr("udp4", service)
+	addr, err := net.ResolveUDPAddr("udp", service)
 	if err != nil {
 		fmt.Println("network.im_alive.Send_im_alive() --> Resolve error", err)
 		internalChan.setupFail <- true
 	}
-	imaSock, err := net.DialUDP("udp4", nil, addr)
+	imaSock, err := net.DialUDP("udp", nil, addr)
 	if err != nil {
 		fmt.Println("network.im_alive.Send_im_alive() --> Dial error", err)
 		internalChan.setupFail <- true
@@ -38,14 +38,14 @@ func Send_im_alive() {
 func Recieve_im_alive() {
 		service := bcast + ":" + UDPport
 		
-		addr, err := net.ResolveUDPAddr("udp4", service)
+		addr, err := net.ResolveUDPAddr("udp", service)
 		
 		if err != nil {
 			fmt.Println("network.im_alive.Recieve_im_alive() --> ResolveUDP error")
 			internalChan.setupFail <- true
 		}
 		
-		sock, err := net.ListenUDP("udp4", addr)
+		sock, err := net.ListenUDP("udp", addr)
 		
 		if err != nil {
 			fmt.Println("network.im_alive.Recieve_im_alive() --> ListenUDP error")
