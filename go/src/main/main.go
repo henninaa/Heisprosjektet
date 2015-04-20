@@ -13,7 +13,7 @@ func main(){
 	go network_module.Start_network(NetChan)
 	go repeater(NetChan)
 	for {
-		newMail := <- netChan.Inbox
+		newMail := <- NetChan.Inbox
 		fmt.Println(newMail)
 	}
 
