@@ -3,6 +3,7 @@ package main
 import (
 		"network_module"
 		"time"
+		"fmt"
 		)
 
 func main(){
@@ -10,6 +11,11 @@ func main(){
 
 	//go network_module.Network_external_chan_init()
 	go network_module.Start_network(NetChan)
+	go repeater(NetChan)
+	for {
+		newMail := <- netChan.Inbox
+		fmt.Println(newMail)
+	}
 
 	deadChan := make(chan int)
 	<-deadChan
