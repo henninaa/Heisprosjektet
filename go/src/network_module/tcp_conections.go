@@ -134,7 +134,7 @@ func (connection *tcpConnection) inbox(quitInbox chan bool) {
 			externalChan.Inbox <- newMail
 
 		default:
-			fmt.Println("network.tcp_connections.inbox --> TestError:", err)
+			fmt.Println("network.tcp_connections.inbox --> Error:", err)
 			time.Sleep(IMAPERIOD * IMALOSS * 2 * time.Millisecond)
 			select {
 			case quitInbox <- true: 
