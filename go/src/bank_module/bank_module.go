@@ -7,8 +7,12 @@ import(
 	)
 
 
-func Bank(){
+func Elevator_main_control(){
 
-	party
+
+
+
+
+	
 }
 

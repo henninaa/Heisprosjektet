@@ -12,7 +12,7 @@ var order_lights [4][3]bool
 
 const QUEUE_SIZE = 12
 
-func Queue_insert(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int){
+func (queue * Queue_t) Queue_insert(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int){
 
 	Debug_message("got queue insert " + string(insert_floor) + " " + string(current_floor), "Queue_insert")
 
@@ -21,21 +21,22 @@ func Queue_insert(insert_floor int, insert_type driver_module.Elev_button_type_t
 
 	turn_on_light(insert_floor, insert_type)
 
-	for i := 0; i < QUEUE_SIZE; i++ {
+	for post := range queue.queue; {
 
-		if(queue[i] == insert_floor){
+		if(post.floor == insert_floor){
 			break
 
-		}else if(queue[i] == -1){
-			queue[i] = insert_floor
+		}else if(post.floor == -1){
+			post.floor = insert_floor
+			post.button_type = insert_type
 			break
 
-		}else if(prev < queue[i]){
+		}else if(prev < post.floor){
 			direction = driver_module.BUTTON_CALL_UP
 
-			if(insert_floor < queue[i] && insert_floor > prev){
+			if(insert_floor < post.floor && insert_floor > prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
-				queue_insert_to_pos(insert_floor, insert_type, i)
+				queue.queue_insert_to_pos(insert_floor, insert_type, i)
 				break
 				}	
 			}
@@ -44,15 +45,15 @@ func Queue_insert(insert_floor int, insert_type driver_module.Elev_button_type_t
 		} else{
 			direction = driver_module.BUTTON_CALL_DOWN
 		
-			if(insert_floor > queue[i] && insert_floor < prev){
+			if(insert_floor > post.floor && insert_floor < prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
-				queue_insert_to_pos(insert_floor, insert_type, i)
+				queue.queue_insert_to_pos(insert_floor, insert_type, i)
 				break
 				}	
 			}
 		}
 
-		prev = queue[i]
+		prev = post.floor
 
 	}
 	Debug_message("Ferdig!", "Queue_insert")
@@ -102,20 +103,13 @@ func Get_insertion_cost(insert_floor int, insert_type int, current_floor int)(in
 
 }
 
-func Init_queue()(){
-
-	var j driver_module.Elev_button_type_t
+func Init_queue()(queue [12]){
 
 	for i := 0; i < QUEUE_SIZE; i++ {
 			queue[i] = -1
 	}
 
-	for i :=0; i<driver_module.N_FLOORS; i++{
-		for j = 0; j<driver_module.N_BUTTONS; j++{
-			order_lights[i][j] = false
-			driver_module.Elev_set_button_lamp(j,i,0)
-		}
-	}
+	return queue
 
 }
 
@@ -139,28 +133,7 @@ func Should_elevator_stop(current_floor int) bool{
 	return false
 }
 
-func Pop_queue() (result int){
 
-	result = queue[0]
-
-	for i := 1; i < QUEUE_SIZE; i++ {
-
-		queue[i-1] = queue[i]
-		if(queue[i] == -1){break}
-	}
-
-	queue[QUEUE_SIZE-1] = -1
-
-	queue_remove_multiple_floors(result)
-
-	return result
-}
-
-func Get_queue_json(queue [QUEUE_SIZE]int)(queue_encoded []byte){
-
-	queue_encoded, _ = json.Marshal(queue)
-	return queue_encoded
-}
 
 
 func queue_insert_to_pos(insert_floor int, insert_type driver_module.Elev_button_type_t, position int){
@@ -223,4 +196,11 @@ func turn_off_lights(floor int){
 		}
 	}
 
+}
+
+
+func Get_queue_json(queue [QUEUE_SIZE]int)(queue_encoded []byte){
+
+	queue_encoded, _ = json.Marshal(queue)
+	return queue_encoded
 }
