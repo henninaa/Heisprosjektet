@@ -8,12 +8,14 @@ import (
 	. "debug_module"
 )
 
-var queue [QUEUE_SIZE]int
-var order_lights [4][3]bool
 
 const QUEUE_SIZE = 12
 
 func (queue * Queue_t) Queue_insert(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int){
+
+	var input_post queue_post
+	input_post.floor = insert_floor
+	input_post.button_type = insert_type
 
 	Debug_message("got queue insert " + string(insert_floor) + " " + string(current_floor), "Queue_insert")
 
@@ -24,12 +26,11 @@ func (queue * Queue_t) Queue_insert(insert_floor int, insert_type driver_module.
 
 	for post := range queue.queue; {
 
-		if(post.floor == insert_floor){
+		if(post == input_post{
 			break
 
 		}else if(post.floor == -1){
-			post.floor = insert_floor
-			post.button_type = insert_type
+			post = input_post
 			break
 
 		}else if(prev < post.floor){
@@ -37,7 +38,7 @@ func (queue * Queue_t) Queue_insert(insert_floor int, insert_type driver_module.
 
 			if(insert_floor < post.floor && insert_floor > prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
-				queue.queue_insert_to_pos(insert_floor, insert_type, i)
+				queue.queue_insert_to_pos(input_post, i)
 				break
 				}	
 			}
@@ -48,7 +49,7 @@ func (queue * Queue_t) Queue_insert(insert_floor int, insert_type driver_module.
 		
 			if(insert_floor > post.floor && insert_floor < prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
-				queue.queue_insert_to_pos(insert_floor, insert_type, i)
+				queue.queue_insert_to_pos(input_post, i)
 				break
 				}	
 			}
@@ -125,10 +126,11 @@ func (queue * Queue_type) Get_new_direction(current_floor int) int{
 
 }
 
-func (queue * queue_type) Should_elevator_stop(current_floor int) bool{
-	if(current_floor == queue.queue[0].floor){
-		queue_remove_multiple_floors(current_floor)
-		turn_off_lights(current_floor)
+func (queue * queue_type) Should_elevator_stop(current_floor int, driver_module.Elev_button_type_t) bool{
+
+	if(current_floor == queue.queue[0].floor; queue.queue[0].button_type == driver_module.BUTTON_COMMAND || queue.queue[0].button_type == direction){
+		queue.queue_remove_multiple_floors(queue.queue[0])
+		//turn_off_lights(current_floor)
 		return true
 	}
 	return false
@@ -159,29 +161,29 @@ func (queue * queue_type) Get_lowest_cost_ip(insert_post queue_post)(lowest_cost
 }
 
 
-func (queue * queue_type) queue_insert_to_pos(insert_floor int, insert_type driver_module.Elev_button_type_t, position int){
+func (queue * queue_type) queue_insert_to_pos(insert_post queue_post, position int){
 
-	var swap int
-	swap = insert_floor
-	var swap_tmp int
+	var swap queue_post
+	swap = insert_post
+	var swap_tmp queue_post
 	
 
 	for i := position; i < QUEUE_SIZE; i++ {
 		
 		if(queue.queue[i].floor == -1){
-			queue.queue[i].floor = swap
+			queue.queue[i] = swap
 			break
 		}
 
-		swap_tmp = queue.queue[i].floor
-		queue.queue[i].floor = swap
+		swap_tmp = queue.queue[i]
+		queue.queue[i] = swap
 		swap = swap_tmp
 
 	}
 
 }
 
-func queue_remove_multiple_floors(floor int){
+func (queue * queue_type) queue_remove_multiple_floors(post queue){
 
 	previndex :=0
 
@@ -189,12 +191,12 @@ func queue_remove_multiple_floors(floor int){
 
 		queue[previndex] = queue[i]
 
-		if(queue[i]==floor){continue}
+		if(queue[i]==post){continue}
 
 		previndex++
 	}
 
-	for i := previndex; i< QUEUE_SIZE; i++ {queue[i] = -1}
+	for i := previndex; i< QUEUE_SIZE; i++ {queue[i].floor = -1}
 
 }
 
@@ -219,13 +221,6 @@ func turn_off_lights(floor int){
 		}
 	}
 
-}
-
-
-func Get_queue_json(queue [QUEUE_SIZE]int)(queue_encoded []byte){
-
-	queue_encoded, _ = json.Marshal(queue)
-	return queue_encoded
 }
 
 func convert_mail_to_queue_post()(){

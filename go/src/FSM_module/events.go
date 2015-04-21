@@ -15,85 +15,88 @@ const(
 	)
 
 
-func Event_generator(){
+func Event_generator(external_chan ExtarnalChannels){
+
+	var internal_chan internal_channels
+	internal_chan.internal_channels_FSM_init()
 
 	var state = IDLE
 
 	select{
 
-	case <- externalChan.reached_floor:
+	case <- external_chan.reached_floor:
 
-		event_reached_floor(&state)
+		event_reached_floor(&state, internal_chan)
 
-	case <- externalChan.stop:
+	case <- external_chan.stop:
 
-		event_stop(&state)
+		event_stop(&state, internal_chan)
 
-	case <- externalChan.ascend:
+	case <- external_chan.ascend:
 
-		event_ascend(&state)
+		event_ascend(&state, internal_chan)
 
-	case <- externalChan.descend:
+	case <- external_chan.descend:
 
-		event_descend(&state)
+		event_descend(&state, internal_chan)
 
-	case <- externalChan.open_door:
+	case <- internal_chan.open_door:
 
-		event_open_door(&state)
+		event_open_door(&state, internal_chan)
 
-	case <- external_chan.close_door:
+	case <- internal_chan.close_door:
 
-		event_close_door(&state)
+		event_close_door(&state, internal_chan)
 
-	case direction := <- externalChan.new_direction:
+	case direction := <- external_chan.new_direction:
 
-		event_new_direction(&state, direction)
+		event_new_direction(&state, direction, internal_chan)
 	}
 }
 
-func event_reached_floor(state * int){
+func event_reached_floor(state * int, internal_chan internal_channels){
 
-	state_machine(*state, REACHED_FLOOR_E)
+	state_machine(*state, REACHED_FLOOR_E, internal_chan)
 }
 
-func event_stop(state * int){
+func event_stop(state * int, internal_chan internal_channels){
 
 	driver_module.Elev_stop_engine()
-	state_machine(*state, STOP_E)
+	state_machine(*state, STOP_E, internal_chan)
 
 }
 
-func event_ascend(state * int){
+func event_ascend(state * int, internal_chan internal_channels){
 
 	driver_module.Elev_start_engine(driver_module.UP)
-	state_machine(*state, ASCEND_E)
+	state_machine(*state, ASCEND_E, internal_chan)
 }
 
-func event_descend(state * int){
+func event_descend(state * int, internal_chan internal_channels){
 
 	driver_module.Elev_start_engine(driver_module.DOWN)
-	state_machine(*state, DESCEND_E)
+	state_machine(*state, DESCEND_E, internal_chan)
 }
 
-func event_open_door(state * int){
+func event_open_door(state * int, internal_chan internal_channels){
 
 	driver_module.Elev_set_door_light(1)
-	state_machine(*state, OPEN_DOOR_E)
+	state_machine(*state, OPEN_DOOR_E, internal_chan)
 }
 
-func event_close_door(state * int){
+func event_close_door(state * int, internal_chan internal_channels){
 
 	driver_module.Elev_set_door_light(0)
-	state_machine(*state, CLOSE_DOOR_E)
+	state_machine(*state, CLOSE_DOOR_E, internal_chan)
 }
 
-func event_new_direction(state * int, direction int){
+func event_new_direction(state * int, direction int, internal_chan internal_channels){
 
 	if(direction == driver_module.UP){
-		externalChan.ascend <- 1
+		external_chan.ascend <- 1
 	} else if(direction == driver_module.DOWN){
-		externalChan.descend <- 1
+		external_chan.descend <- 1
 	}
 	
-	state_machine(*state, NEW_DIRECTION_E)
+	state_machine(*state, NEW_DIRECTION_E, internal_chan)
 }

@@ -9,7 +9,7 @@ type Queue_type struct(
 
 	var queue [QUEUE_SIZE]queue_post
 	var order_lights [4][3]bool
-	var backup [4]queue_backup
+	var backup []queue_backup
 
 	)
 

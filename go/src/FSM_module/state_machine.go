@@ -1,25 +1,25 @@
 package FSM_module
 
 
-func State_machine(state * int, event int){
+func State_machine(state * int, event int, internal_chan interal_channels){
 
 	switch(state){
 
 	case idle:
 
-		idle_state(&state,event)
+		idle_state(&state,event, internal_chan)
 	case door_open:
 
-		door_open_state(&state,event)
+		door_open_state(&state,event, internal_chan)
 	case moving:
 
-		moving_state(&state,event)
+		moving_state(&state,event, internal_chan)
 
 	}
 }
 
 
-func idle_state(state * int,event int){
+func idle_state(state * int,event int, internal_chan interal_channels){
 
 	switch(event){
 		
@@ -30,30 +30,30 @@ func idle_state(state * int,event int){
 	case STOP_E:
 
 		state = door_open
-		externalChan.open_door <- 1
+		internal_chan.open_door <- 1
 
 	}
 
 }
 
-func door_open_state(state * int, event int){
+func door_open_state(state * int, event int, internal_chan interal_channels){
 
 	switch(event){
 
 	case CLOSE_DOOR_E:
 
-		externalChan.close_door <- 1
+		internal_chan.close_door <- 1
 		state = idle
 	}
 }
 
-func moving_state(state * int, event int){
+func moving_state(state * int, event int, internal_chan interal_channels){
 
 	switch(event){
 		
 	case STOP_E:
 
-		externalChan.open_door <- 1
+		internal_chan.open_door <- 1
 		state = door_open
 	}
 }
