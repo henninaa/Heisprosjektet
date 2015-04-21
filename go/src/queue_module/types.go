@@ -5,15 +5,15 @@ import(
 	)
 
 
-type Queue_t struct(
+type Queue_type struct(
 
-	var queue [12]queue_post
+	var queue [QUEUE_SIZE]queue_post
 	var order_lights [4][3]bool
 	var backup [4]queue_backup
 
 	)
 
-func (queue * Queue_t) init(){
+func (queue * Queue_type) queue_type_init(){
 
 	var j driver_module.Elev_button_type_t
 
@@ -36,13 +36,13 @@ type queue_post struct{
 
 type queue_backup struct{
 
-	var ip string
-	var queue [12]queue_post
+	var IP string
+	var queue [QUEUE_SIZE]queue_post
 
 }
 
 func (backup * queue_backup) init(ip string){
 
 	backup.queue = Init_queue()
-	backup.ip = ip
+	backup.IP = ip
 }

@@ -2,6 +2,7 @@ package queue_module
 
 import (
 	"driver_module"
+	"network_module"
 	"encoding/json"
 	"math"
 	. "debug_module"
@@ -59,7 +60,7 @@ func (queue * Queue_t) Queue_insert(insert_floor int, insert_type driver_module.
 	Debug_message("Ferdig!", "Queue_insert")
 }
 
-func Get_insertion_cost(insert_floor int, insert_type int, current_floor int)(int){
+func Get_insertion_cost(insert_floor int, insert_type int, current_floor int, queue [QUEUE_SIZE]queue_post)(int){
 
 	prev := current_floor
 	direction := 0
@@ -67,16 +68,16 @@ func Get_insertion_cost(insert_floor int, insert_type int, current_floor int)(in
 
 	for i := 0; i < QUEUE_SIZE; i++ {
 
-		if(queue[i] == insert_floor){
+		if(queue[i].floor == insert_floor){
 			break
 
-		}else if(queue[i] == -1){
+		}else if(queue[i].floor == -1){
 			break
 
-		}else if(prev < queue[i]){
+		}else if(prev < queue[i].floor){
 			direction = driver_module.BUTTON_CALL_UP
 
-			if(insert_floor < queue[i] && insert_floor > prev){
+			if(insert_floor < queue[i].floor && insert_floor > prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
 				break
 				}	
@@ -85,15 +86,15 @@ func Get_insertion_cost(insert_floor int, insert_type int, current_floor int)(in
 		} else{
 			direction = driver_module.BUTTON_CALL_DOWN
 		
-			if(insert_floor > queue[i] && insert_floor < prev){
+			if(insert_floor > queue[i].floor && insert_floor < prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
 				break
 				}	
 			}
 		}
 		
-		cost += int(math.Abs(float64(prev - queue[i])))
-		prev = queue[i]
+		cost += int(math.Abs(float64(prev - queue[i].floor)))
+		prev = queue[i].floor
 
 	}
 
@@ -113,10 +114,10 @@ func Init_queue()(queue [12]){
 
 }
 
-func One_direction(current_floor int) int{
-	if(queue[0]==-1 ){
+func (queue * Queue_type) Get_new_direction(current_floor int) int{
+	if(queue.queue[0]==-1 ){
 		return -1
-	}else if(current_floor < queue[0]){
+	}else if(current_floor < queue.queue[0]){
 		return driver_module.UP
 	} else{
 		return driver_module.DOWN
@@ -124,8 +125,8 @@ func One_direction(current_floor int) int{
 
 }
 
-func Should_elevator_stop(current_floor int) bool{
-	if(current_floor == queue[0]){
+func (queue * queue_type) Should_elevator_stop(current_floor int) bool{
+	if(current_floor == queue.queue[0].floor){
 		queue_remove_multiple_floors(current_floor)
 		turn_off_lights(current_floor)
 		return true
@@ -133,10 +134,32 @@ func Should_elevator_stop(current_floor int) bool{
 	return false
 }
 
+func (queue * queue_type) Get_lowest_cost_ip(insert_post queue_post)(lowest_cost_ip string){
+
+	lowest_cost := 999999
+	cost := -1
+
+	for post := range queue.backup{
+
+		cost = Get_insertion_cost(insert_post.floor, insert_post.button_type, current_floor, post.queue)
+
+		if(cost < lowest_cost){
+			lowest_cost_ip = post.IP
+			lowest_cost = cost
+		}
+	}
+
+	cost = Get_insertion_cost(insert_post.floor, insert_post.button_type, current_floor, queue.queue)
+
+	if(cost < lowest_cost){
+		lowest_cost_ip = "self"
+	}
+
+	return lowest_cost_ip
+}
 
 
-
-func queue_insert_to_pos(insert_floor int, insert_type driver_module.Elev_button_type_t, position int){
+func (queue * queue_type) queue_insert_to_pos(insert_floor int, insert_type driver_module.Elev_button_type_t, position int){
 
 	var swap int
 	swap = insert_floor
@@ -145,13 +168,13 @@ func queue_insert_to_pos(insert_floor int, insert_type driver_module.Elev_button
 
 	for i := position; i < QUEUE_SIZE; i++ {
 		
-		if(queue[i] == -1){
-			queue[i] = swap
+		if(queue.queue[i].floor == -1){
+			queue.queue[i].floor = swap
 			break
 		}
 
-		swap_tmp = queue[i]
-		queue[i] = swap
+		swap_tmp = queue.queue[i].floor
+		queue.queue[i].floor = swap
 		swap = swap_tmp
 
 	}
@@ -203,4 +226,15 @@ func Get_queue_json(queue [QUEUE_SIZE]int)(queue_encoded []byte){
 
 	queue_encoded, _ = json.Marshal(queue)
 	return queue_encoded
+}
+
+func convert_mail_to_queue_post()(){
+
+	var mail network_module.Mail
+}
+
+
+func convert_mail_to_backup_post()(){
+
+
 }

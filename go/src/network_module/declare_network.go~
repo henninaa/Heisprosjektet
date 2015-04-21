@@ -12,17 +12,6 @@ const (
         CONNATMPT		= 5
 )
 
-const (
-	ORDER_TAKEN 		= "OTK"
-	ORDER_EXECUTED		= "OEX"
-	DELIVER_ORDER 		= "DLO"
-	ERROR_MSG 			= "ERM"
-	TAKE_BACKUP_ORDER	= "TBO"
-	BACKUP_ORDER_COMPLETE= "BOC"
-	TAKE_NEW_ORDER		= "TNO"
-	TAKE_BACKUP_FLOOR	= "TBF"
-)
-	
 var(
 	UDPport = "9001"
 	TCPport = "9191"
@@ -48,17 +37,7 @@ type tcpConnection struct{
 
 type Mail struct {
 	IP  string
-	Msg message
+	Msg []byte
 }
 
-type Message struct {
-	msg_type string
-	floor int
-	button_type int
-		
-}
 
-func (mail * Mail) Make_mail(ip string, msg_type string, floor int, button_type int){
-
-
-}
