@@ -1,5 +1,7 @@
 package FSM_module
 
+import("time")
+
 type _state int
 
 //-------states
@@ -20,3 +22,5 @@ const(
 	NEW_DIRECTION_E = 0x05
 	REACHED_FLOOR_E	= 0x06
 	)
+
+const EVENT_INTERVAL = 20* time.Millisecond

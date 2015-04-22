@@ -14,6 +14,18 @@ const (
         CONNFAILTIMEOUT = 2 * NETSETUP
 )
 
+const (
+        ORDER_TAKEN             = "OTK"
+        ORDER_EXECUTED          = "OEX"
+        DELIVER_ORDER           = "DLO"
+        ERROR_MSG               = "ERM"
+        TAKE_BACKUP_ORDER       = "TBO"
+        BACKUP_ORDER_COMPLETE   = "BOC"
+        TAKE_NEW_ORDER          = "TNO"
+        TAKE_BACKUP_FLOOR       = "TBF"
+)
+
+
 var (
         bcast   = "129.241.187.255"
         LOCALIP = GetMyIP()
@@ -38,7 +50,7 @@ type tcpConnection struct {
 }
 
 type Message struct{
-        MsgType int
+        Msg_type string
         Floor int
         Dir string
         CostAnsw int
@@ -48,4 +60,8 @@ type Message struct{
 type Mail struct {
         IP  string
         Msg Message
+}
+
+func (mail Mail) Make_mail(){
+        
 }

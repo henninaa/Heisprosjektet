@@ -166,3 +166,15 @@ func Elev_set_button_lamp(button Elev_button_type_t, floor int, value int) {
 		io_clear_bit(lamp_channel_matrix[floor][button]);
 	}
 }
+
+func Convert_dir_to_button(direction int)(Elev_button_type_t){
+
+	if(direction == UP){
+		return BUTTON_CALL_UP
+	} else if(direction == DOWN){
+		return BUTTON_CALL_DOWN
+	} else{
+		return BUTTON_COMMAND
+	}
+
+}

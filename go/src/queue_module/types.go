@@ -31,7 +31,7 @@ type queue_backup struct{
 
 }
 
-func (queue * Queue_type) queue_type_init(){
+func (queue * Queue_type) Init(){
 
 	var j driver_module.Elev_button_type_t
 

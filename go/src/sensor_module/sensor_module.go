@@ -5,15 +5,15 @@ import(
 	"driver_module"
 	"queue_module"
 	. "debug_module"
-	//"fmt"
+	"fmt"
 	)
 
 func Sensors(sensor_chan External_channels){
 
-	go stop_sensor(sensor_chan.stop_chan)
-	go floor_sensors(sensor_chan.floor_chan, sensor_chan.floor_chan)
-	go order_buttons(sensor_chan.order_chan)
-	go obstruction_sensor(sensor_chan.obstruction_chan)
+	go stop_sensor(sensor_chan.Stop_chan)
+	go floor_sensors(sensor_chan.Floor_chan)
+	go order_buttons(sensor_chan.Order_chan)
+	go obstruction_sensor(sensor_chan.Obstruction_chan)
 	//go Self_destruction()
 
 	Debug_message("Sensors started...", "SENSORS")
@@ -35,7 +35,7 @@ func stop_sensor(stop_chan chan int){
 	}
 }
 
-func floor_sensors(floor_chan chan int, floor_channel chan int){
+func floor_sensors(floor_chan chan int){
 
 	previous_position := -2
 	current_floor := -2
@@ -205,9 +205,12 @@ func check_command_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan q
 
 		if(should_take_action(got_order, &(hold[i]))){
 
+			fmt.Println(order_chan)
 			post.Floor = i
 			post.Button_type = button_type
 			order_chan <- post
+
+
 			
 		}
 	}

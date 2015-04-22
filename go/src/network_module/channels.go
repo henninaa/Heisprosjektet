@@ -26,6 +26,7 @@ type NetChannels struct {
         Inbox            chan Mail
         NumOfPeers       chan int
         Panic            chan bool
+        New_connection  chan string
 }
 
 var internalChan internalChannels

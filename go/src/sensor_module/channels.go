@@ -4,18 +4,18 @@ import("queue_module")
 
 type External_channels struct {
 
-	stop_chan chan int
-	floor_chan chan int
-	order_chan chan queue_module.Queue_post
-	obstruction_chan chan bool
+	Stop_chan chan int
+	Floor_chan chan int
+	Order_chan chan queue_module.Queue_post
+	Obstruction_chan chan bool
 
 }
 
-func (sensor_chan * External_channels) Sensor_init(){
+func (sensor_chan * External_channels) Init(){
 
-	sensor_chan.stop_chan = make(chan int, 1)
-	sensor_chan.floor_chan = make(chan int, 1)
-	sensor_chan.order_chan = make(chan queue_module.Queue_post)
-	sensor_chan.obstruction_chan = make(chan bool, 1)
+	sensor_chan.Stop_chan = make(chan int, 1)
+	sensor_chan.Floor_chan = make(chan int, 1)
+	sensor_chan.Order_chan = make(chan queue_module.Queue_post, 12)
+	sensor_chan.Obstruction_chan = make(chan bool, 1)
 
 }
