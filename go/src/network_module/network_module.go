@@ -1,36 +1,53 @@
 package network_module
 
-import(
-		"math/rand"
-		"fmt"
-		"time"
-		)
+import (
 
-func Start_network(NetChan NetChannels){
-	rand.Seed(time.Now().UTC().UnixNano())
-	internalChan.network_internal_chan_init()
-	externalChan = NetChan
-	go Send_im_alive()
-	go Recieve_im_alive()
-	go Watch_im_alive()
-	go manageTCPconnections()
+        "math/rand"
+        "time"
+        "printc"
+)
 
-	for{
-		select{
-		case <- internalChan.setupFail:
-			fmt.Println("net.Netwok --> setupFail \n ---------- Please wait while we try again ----------")
-			internalChan.quitSendIMA <- true
-			internalChan.quitWatchIMA <- true
-			internalChan.quitRecieveIMA <- true
-			internalChan.quitListenTCP <- true
-			internalChan.quitTCPmap <- true
-			go Send_im_alive()
-			go Recieve_im_alive()
-			go Watch_im_alive()
-			go manageTCPconnections()
 
-		case <- time.After(NETSETUP * time.Millisecond):
-			//fmt.Println("Network setup success")
-		}
-	}
+func NetworkSetup(NetChan NetChannels) {
+        rand.Seed(time.Now().UTC().UnixNano())
+        
+        internalChan.init()
+        
+        externalChan = NetChan
+        
+        imaStart()
+        networkStart()
+}
+
+func imaStart() {
+        go imaWatcher()
+        go imaListen()
+        go imaSend()
+}
+
+func networkStart() {
+        go manageTCPConnections()
+        
+        for {
+                select {
+                
+                case <-internalChan.setupfail:
+                        printc.DataWithColor(printc.COLOR_RED,"net.Startup--> Setupfail. Retrying...")
+                        
+                        internalChan.quitImaSend <- true
+                        internalChan.quitImaListen <- true
+                        internalChan.quitImaWatcher <- true
+                        internalChan.quitListenTCP <- true
+                        internalChan.quitTCPMap <- true
+                        time.Sleep(time.Millisecond)
+                        
+                        imaStart()
+                        
+                        go manageTCPConnections()
+                
+                case <-time.After(NETSETUP * time.Millisecond):
+                        printc.DataWithColor(printc.COLOR_GREEN,"net.Startup --> Network setup complete")
+                        return
+                }
+        }
 }

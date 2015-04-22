@@ -27,8 +27,8 @@ type External_channels struct{
 
 func (external_chan * External_channels) External_channels_FSM_init(){
 
-	external_chan.Reached_floor = make(chan int)
-	external_chan.Stop  = make(chan int)
-	external_chan.New_direction = make(chan int)
+	external_chan.reached_floor = make(chan int)
+	external_chan.stop  = make(chan int)
+	external_chan.new_direction = make(chan int)
 	
 }

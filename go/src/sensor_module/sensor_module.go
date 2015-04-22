@@ -8,32 +8,20 @@ import(
 	//"fmt"
 	)
 
-var Sensor_channels sensor_channels
-var current_floor_gl int
+func Sensors(sensor_chan External_channels){
 
-func Sensors(){
-
-	Sensor_init()
-
-	go stop_sensor()
-	go floor_sensors()
-	go order_buttons()
-	go obstruction_sensor()
+	go stop_sensor(sensor_chan.stop_chan)
+	go floor_sensors(sensor_chan.floor_chan, sensor_chan.floor_chan)
+	go order_buttons(sensor_chan.order_chan)
+	go obstruction_sensor(sensor_chan.obstruction_chan)
 	//go Self_destruction()
 
 	Debug_message("Sensors started...", "SENSORS")
 }
 
-func Sensor_init(){
 
-	Sensor_channels.Stop_chan = make(chan int, 1)
-	Sensor_channels.Floor_chan = make(chan int, 1)
-	Sensor_channels.Order_chan = make(chan [2]int, 12)
-	Sensor_channels.Obstruction_chan = make(chan bool, 1)
 
-}
-
-func stop_sensor(){
+func stop_sensor(stop_chan chan int){
 
 	hold := false
 
@@ -42,39 +30,40 @@ func stop_sensor(){
 		time.Sleep(STOP_SENSOR_INTERVAL)
 
 		if(should_take_action(driver_module.Elev_get_stop_signal(), &hold)){
-			Sensor_channels.Stop_chan <- 1
+			stop_chan <- 1
 		} 
 	}
 }
 
-func floor_sensors(){
+func floor_sensors(floor_chan chan int, floor_channel chan int){
 
-	previous_floor := -2
-	var current_floor int
+	previous_position := -2
+	current_floor := -2
+	var current_position int
 
 	for{
 
 		time.Sleep(FLOOR_SENSOR_INTERVAL)
 
-		current_floor = driver_module.Elev_get_floor_sensor_signal()
+		current_position = driver_module.Elev_get_floor_sensor_signal()
 
-		if(current_floor != previous_floor){
+		if(current_position != previous_position){
 
 			select{
 
-				case  <- Sensor_channels.Floor_chan:
-					Sensor_channels.Floor_chan <- current_floor
+				case  <- floor_chan:
+					floor_chan <- current_position
 				default:
-					Sensor_channels.Floor_chan <- current_floor
+					floor_chan <- current_position
 			}
 
-			if(current_floor != -1){
-				current_floor_gl = current_floor
+			if(current_position != -1){
+				current_floor = current_position
 				driver_module.Elev_set_floor_indicator(current_floor)
 				//fmt.Printf("%d", current_floor)
 			}
 
-			previous_floor = current_floor
+			previous_position = current_position
 		}
 	}
 }
@@ -86,43 +75,34 @@ func Floor_sensors()int{
 }
 
 /*func order_buttons_redundant(){
-
 	var hold [driver_module.N_FLOORS][driver_module.N_BUTTONS]bool
 	var j driver_module.Elev_button_type_t
 	var got_order bool
-
 	for i := 0; i < driver_module.N_FLOORS; i++{
 		for j := driver_module.BUTTON_CALL_UP; j <= driver_module.BUTTON_COMMAND; j++{
 			hold[i][j] = false
 		}
 	}
-
 	for{
-
 		time.Sleep(ORDER_SENSORS_INTERVAL)
-
 		for i := 0; i < driver_module.N_FLOORS; i++{
 			for j = driver_module.BUTTON_CALL_UP; j <= driver_module.BUTTON_COMMAND; j++{
-
 				if(is_floor_legal(i,j) == true){
 					//Debug_message("Got order illegal", "order_buttons")
 					continue
 				}
-
 				got_order = driver_module.Elev_get_button_signal(j, i)
-
 				if(should_take_action_array(got_order, hold, i, int(j))){
 					//Sensor_channels.Order_chan <- {i,j}
 					Debug_message("Got order", "order_buttons")
 					queue_module.Queue_insert(i,j,current_floor_gl)
-
 				}
 			}
 		}
 	}
 }*/
 
-func order_buttons(){
+func order_buttons(order_chan chan queue_module.Queue_post){
 
 	var hold [driver_module.N_BUTTONS][driver_module.N_FLOORS]bool
 
@@ -136,15 +116,15 @@ func order_buttons(){
 	for{
 
 		time.Sleep(ORDER_SENSORS_INTERVAL)
-		check_command_orders(&(hold[0]))
-		check_up_orders(&(hold[1]))
-		check_down_orders(&(hold[2]))
+		check_command_orders(&(hold[0]), order_chan)
+		check_up_orders(&(hold[1]), order_chan)
+		check_down_orders(&(hold[2]), order_chan)
 
 
 	}
 }
 
-func obstruction_sensor(){
+func obstruction_sensor(obstruction_chan chan bool){
 
 	current_signal := driver_module.Elev_get_obstruction_signal()
 	var previous_signal bool
@@ -159,10 +139,10 @@ func obstruction_sensor(){
 
 			select{
 
-				case <- Sensor_channels.Floor_chan:
-					Sensor_channels.Obstruction_chan <- current_signal
+				case <- obstruction_chan:
+					obstruction_chan <- current_signal
 				default:
-					Sensor_channels.Obstruction_chan <- current_signal
+					obstruction_chan <- current_signal
 			}
 
 			previous_signal = current_signal
@@ -170,7 +150,7 @@ func obstruction_sensor(){
 	}
 }
 
-func Self_destruction(){
+func self_destruction(){
 
 	for{
 
@@ -211,10 +191,11 @@ func is_floor_legal(i int, j driver_module.Elev_button_type_t) bool{
 	return true
 }
 
-func check_command_orders(hold * [driver_module.N_FLOORS]bool){
+func check_command_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan queue_module.Queue_post){
 
 	got_order := false
 	var button_type driver_module.Elev_button_type_t
+	var post queue_module.Queue_post
 
 	button_type = driver_module.BUTTON_COMMAND
 
@@ -224,16 +205,20 @@ func check_command_orders(hold * [driver_module.N_FLOORS]bool){
 
 		if(should_take_action(got_order, &(hold[i]))){
 
-			queue_module.Queue_insert(i, button_type, current_floor_gl)
+			post.Floor = i
+			post.Button_type = button_type
+			order_chan <- post
+			
 		}
 	}
 
 }
 	
-func check_up_orders(hold * [driver_module.N_FLOORS]bool){
+func check_up_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan queue_module.Queue_post){
 
 	got_order := false
 	var button_type driver_module.Elev_button_type_t
+	var post queue_module.Queue_post
 
 	button_type = driver_module.BUTTON_CALL_UP
 
@@ -243,16 +228,20 @@ func check_up_orders(hold * [driver_module.N_FLOORS]bool){
 
 		if(should_take_action(got_order, &(hold[i]))){
 
-			queue_module.Queue_insert(i, button_type, current_floor_gl)
+			post.Floor = i
+			post.Button_type = button_type
+			order_chan <- post
+			
 		}
 	}
 
 }
 
-func check_down_orders(hold * [driver_module.N_FLOORS]bool){
+func check_down_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan queue_module.Queue_post){
 
 	got_order := false
 	var button_type driver_module.Elev_button_type_t
+	var post queue_module.Queue_post
 
 	button_type = driver_module.BUTTON_CALL_DOWN
 
@@ -262,7 +251,10 @@ func check_down_orders(hold * [driver_module.N_FLOORS]bool){
 
 		if(should_take_action(got_order, &(hold[i]))){
 
-			queue_module.Queue_insert(i, button_type, current_floor_gl)
+			post.Floor = i
+			post.Button_type = button_type
+			order_chan <- post
+			
 		}
 	}
 

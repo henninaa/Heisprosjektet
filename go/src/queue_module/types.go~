@@ -13,13 +13,13 @@ type Queue_type struct{
 	}
 
 type queue_list struct{
-	list [QUEUE_SIZE]Queue_post
+	list [QUEUE_SIZE]queue_post
 }
 
-type Queue_post struct{
+type queue_post struct{
 
-	Floor int
-	Button_type driver_module.Elev_button_type_t
+	floor int
+	button_type driver_module.Elev_button_type_t
 
 }
 
