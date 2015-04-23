@@ -26,7 +26,7 @@ func state_machine(state * int, event int, internal_chan internal_channels){
 
 func idle_state(state * int,event int, internal_chan internal_channels){
 
-	printc.DataWithColor(printc.COLOR_CYAN, "state: ", event)
+	printc.Data_with_color(printc.COLOR_CYAN, "state: ", event)
 
 	switch(event){
 

@@ -7,7 +7,6 @@ import(
 	"driver_module"
 	"sensor_module"
 	"FSM_module"
-	"fmt"
 	"printc"
 	)
 
@@ -37,7 +36,6 @@ func Elevator_main_control(){
 
 
 	start_up(sensor_channels, event_channels, network_channels)
-	fmt.Println("clickibng: ", sensor_channels.Order_chan)
 	//var mail_buffer []network_module.Mail
 
 	//----------Main control loop
@@ -45,79 +43,77 @@ func Elevator_main_control(){
 	go_to_defined_floor(&elevator, sensor_channels)
 
 	for{
-
-		printc.DataWithColor(printc.COLOR_YELLOW, "ny runde")
 		time.Sleep(ELEVATOR_MAIN_CONTROL_INTERVAL)
 		select{
 
 			case msg := <- network_channels.Inbox:
-				printc.DataWithColor(printc.COLOR_GREEN, "inbox")
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from network_channels.Inbox")
 				handle_network_messgage(msg, internal_chan)
 
+			
 			case post := <- sensor_channels.Order_chan:
-
-				printc.DataWithColor(printc.COLOR_GREEN, "order_chan")
-
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from sensor_channels.Order_chan")
 				handle_new_order(post,internal_chan.insert_to_queue, internal_chan.auction_order)
 
+			
 			case post := <- internal_chan.insert_to_queue:
-
-				printc.DataWithColor(printc.COLOR_GREEN, "insert_to_queue")
-
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from internal_chan.insert_to_queue")
 				insert_post_to_queue(post, &queue, elevator.floor, network_channels.Send_to_all, event_channels)
 				
+			
 			case post := <- internal_chan.auction_order:
-
-				printc.DataWithColor(printc.COLOR_GREEN, "auction_order")
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from internal_chan.auction_order")
 				deliver_order(post, queue.Get_lowest_cost_ip(post, elevator.floor), internal_chan.insert_to_queue, network_channels.Send_to_one)
 
+			
 			case mail := <- internal_chan.order_executed:
-
 				handle_order_executed(mail, &queue)
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from internal_chan.order_executed")
 
-				printc.DataWithColor(printc.COLOR_GREEN, "order_executed")
-
+			
 			case floor := <- sensor_channels.Floor_chan:
-
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from sensor_channels.Floor_chan")
 				handle_new_floor(floor, &(elevator.floor), internal_chan.check_stop_conditions)
 
-				printc.DataWithColor(printc.COLOR_GREEN, "new fllor")
-
+			
 			case direction := <- internal_chan.new_direction:
-
-				printc.DataWithColor(printc.COLOR_GREEN, "new_direction")
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from internal_chan.new_direction")
 				handle_new_direction(direction, &elevator, event_channels)
 
+			
 			case ip := <- network_channels.New_connection:
-				printc.DataWithColor(printc.COLOR_GREEN, "New_connection")
-
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from network_channels.New_connection")
 				handle_new_connection(ip, queue, elevator.floor)
 
+			
 			case <- internal_chan.check_stop_conditions:
-				printc.DataWithColor(printc.COLOR_GREEN, "check_stop")
-
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from internal_chan.check_stop")
 				check_stop_cond(&queue, &elevator, event_channels, network_channels)
 
+			
 			case <- event_channels.Get_new_direction:
-
-				printc.DataWithColor(printc.COLOR_GREEN, "Get_new_direction.Req_new_direction")
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from event_channels.Get_new_direction")
 				handle_new_direction(queue.Get_new_direction(elevator.floor), &elevator, event_channels)
 
+			
 			case <- event_channels.Get_new_action:
-
-				printc.DataWithColor(printc.COLOR_GREEN, "Get_new_action.Req_new_direction")
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from event_channels.Get_new_action")
 				make_new_action(&queue, elevator, event_channels, network_channels)
 
+			
 			case dead_elevator := <- network_channels.Get_dead_elevator:
-				printc.DataWithColor(printc.COLOR_RED, "The elevator ", dead_elevator, " has died!! YOU TWAT")
+				printc.Data_with_color(printc.COLOR_RED, "Getting a message from network_channels.Get_dead_elevator: ", dead_elevator)
 
+			
 			case <- internal_chan.take_backup_order:
 
+			
 			case <- internal_chan.take_backup_order:
 /*
+			
 			case <- event_channels.Get_new_direction:
 
-				printc.DataWithColor(printc.COLOR_GREEN, "Req_new_direction")
+				printc.Data_with_color(printc.COLOR_GREEN, "Req_new_direction")
 				handle_new_direction(queue.Get_new_direction(elevator.floor), &elevator, event_channels)
 */
 
@@ -137,19 +133,19 @@ func handle_network_messgage(mail network_module.Mail, internal_chan internal_ch
 	case network_module.ORDER_EXECUTED:
 
 		internal_chan.order_executed <- mail
-		printc.DataWithColor(printc.COLOR_GREEN, "ORDER_EXECUTED.MAIL ", mail)
+		printc.Data_with_color(printc.COLOR_GREEN, "ORDER_EXECUTED.MAIL ", mail)
 
 	case network_module.DELIVER_ORDER:
 
 	case network_module.TAKE_NEW_ORDER:
 
 		internal_chan.insert_to_queue <- queue_module.Convert_mail_to_queue_post(mail)
-		printc.DataWithColor(printc.COLOR_GREEN, "TAKE_NEW_ORDER.MAIL ", mail)
+		printc.Data_with_color(printc.COLOR_GREEN, "TAKE_NEW_ORDER.MAIL ", mail)
 
 	case network_module.TAKE_BACKUP_ORDER:
 
 		internal_chan.take_backup_order <- convert_mail_to_backup_post(mail, mail.IP)
-		printc.DataWithColor(printc.COLOR_GREEN, "TAKE_NEW_BACKUP_ORDER.MAIL ", mail)
+		printc.Data_with_color(printc.COLOR_GREEN, "TAKE_NEW_BACKUP_ORDER.MAIL ", mail)
 
 	case network_module.TAKE_BACKUP_FLOOR:
 
@@ -167,8 +163,6 @@ func handle_new_order(post queue_module.Queue_post, insert_to_queue chan queue_m
 		auction_order <- post
 
 	}
-
-	fmt.Println("yeye")
 
 }
 
@@ -211,7 +205,7 @@ func handle_new_floor(floor_input int, current_floor * int, stop_check_chan chan
 
 func handle_new_direction(direction int, elevator * elevator_type, event_chan FSM_module.External_channels){
 
-	printc.DataWithColor(printc.COLOR_YELLOW, "Retning: ", direction)
+	printc.Data_with_color(printc.COLOR_YELLOW, "Retning: ", direction)
 
 	if (direction == -1){
 		elevator.moving = false
@@ -258,7 +252,7 @@ func handle_order_executed(mail network_module.Mail, queue * queue_module.Queue_
 }
 
 func check_stop_cond(queue * queue_module.Queue_type, elevator * elevator_type, event_channels FSM_module.External_channels, network_channels network_module.Net_channels){
-		fmt.Println(elevator.floor)
+		printc.Data_with_color(printc.COLOR_GREEN, "check_stop_cond elevator.floor: ", elevator.floor)
 
 
 	var mail network_module.Mail
@@ -296,7 +290,7 @@ func make_new_action(queue * queue_module.Queue_type, elevator elevator_type, ev
 		event_channels.New_direction_down <- 1
 	}
 
-	printc.DataWithColor(printc.COLOR_GREEN, "jeg skal: ", queue.Get_new_direction(elevator.floor))
+	printc.Data_with_color(printc.COLOR_GREEN, "jeg skal: ", queue.Get_new_direction(elevator.floor))
 
 }
 

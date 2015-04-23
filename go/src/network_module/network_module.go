@@ -33,7 +33,7 @@ func network_start() {
                 select {
                 
                 case <-internal_chan.setup_fail:
-                        printc.DataWithColor(printc.COLOR_RED,"net.Startup--> Setupfail. Retrying...")
+                        printc.Data_with_color(printc.COLOR_RED,"net.Startup--> Setupfail. Retrying...")
                         
                         internal_chan.quit_ima_send <- true
                         internal_chan.quit_ima_listen <- true
@@ -47,7 +47,7 @@ func network_start() {
                         go manage_TCP_connections()
                 
                 case <-time.After(NET_SETUP * time.Millisecond):
-                        printc.DataWithColor(printc.COLOR_GREEN,"net.Startup --> Network setup complete")
+                        printc.Data_with_color(printc.COLOR_GREEN,"net.Startup --> Network setup complete")
                         return
                 }
         }

@@ -9,7 +9,7 @@ import (
 func Get_my_IP() string {
         allIPs, err := net.InterfaceAddrs()
         if err != nil {
-                printc.DataWithColor(printc.COLOR_RED,"network.GetMyIP()--> Error receiving IPs. IP set to localhost. Consider setting IP manually")
+                printc.Data_with_color(printc.COLOR_RED,"network.GetMyIP()--> Error receiving IPs. IP set to localhost. Consider setting IP manually")
                 return "localhost"
         }
 

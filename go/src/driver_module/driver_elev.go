@@ -1,8 +1,7 @@
 package driver_module
 
 import(
-	//"math"
-	"fmt"
+	"printc"
 )
 
 const N_BUTTONS = 3
@@ -35,7 +34,7 @@ const (
 func Elev_init()(current_floor int){
 
 	if io_init() {
-		fmt.Println("Elevator driver initialized...\n")
+		printc.Data_with_color(printc.COLOR_GREEN, "Elevator driver initialized...")
 	}
 	/*
 	fmt.Println("Going to first defined floor...\n")

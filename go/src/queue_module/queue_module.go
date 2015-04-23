@@ -4,7 +4,9 @@ import (
 	"driver_module"
 	"math"
 	"network_module"
-	. "debug_module"
+	"os"
+	"encoding/gob"
+	"printc"
 )
 
 
@@ -206,7 +208,7 @@ func (queue * queue_list) insert(insert_floor int, insert_type driver_module.Ele
 
 	turn_on_light(insert_floor, insert_type)
 
-	Debug_message("got queue insert " + string(insert_floor) + " " + string(current_floor), "Queue_insert")
+	printc.Data_with_color(printc.COLOR_GREEN, "Queue_insert: Got queue insert ", insert_floor, current_floor)
 
 	prev := current_floor
 	var direction driver_module.Elev_button_type_t
@@ -245,7 +247,7 @@ func (queue * queue_list) insert(insert_floor int, insert_type driver_module.Ele
 		prev = queue.list[i].Floor
 
 	}
-	Debug_message("Ferdig!", "Queue_insert")
+	printc.Data_with_color(printc.COLOR_GREEN, "Queue_insert: Ferdig!")
 }
 
 func (queue * queue_list) get_insertion_cost(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int)(int){
@@ -295,4 +297,43 @@ func (queue * queue_list) get_insertion_cost(insert_floor int, insert_type drive
 	cost += int(math.Abs(float64(prev - insert_floor)))
 
 	return cost
+}
+
+func (internal_queue * Queue_type) save_internal_orders_to_file(){
+	file, err := os.Create("internal_orders.gob")
+
+	if err != nil {
+		panic(err)		
+	}
+
+	enc := gob.NewEncoder(file)
+
+	err = enc.Encode(&internal_queue)
+
+	if err != nil {
+		printc.Data_with_color(printc.COLOR_RED,"Encode error while writing to file: ", err)
+		os.Exit(1)
+	}
+
+	file.Close()
+
+}
+
+func (internal_queue * Queue_type) backup_internal_order_from_file(){
+	file, err := os.Open("internal_orders.gob")
+
+	if err != nil {
+		panic(err)		
+	}
+
+	dec := gob.NewDecoder(file)
+
+	err = dec.Decode(&internal_queue)
+
+	if err != nil {
+		printc.Data_with_color(printc.COLOR_RED,"Decode error while reading from file: ", err)
+		os.Exit(1)
+	}
+
+	file.Close()
 }

@@ -4,8 +4,7 @@ import(
 	"time"
 	"driver_module"
 	"queue_module"
-	. "debug_module"
-	"fmt"
+	"printc"
 	)
 
 func Sensors(sensor_chan External_channels){
@@ -16,7 +15,7 @@ func Sensors(sensor_chan External_channels){
 	go obstruction_sensor(sensor_chan.Obstruction_chan)
 	//go Self_destruction()
 
-	Debug_message("Sensors started...", "SENSORS")
+	printc.Data_with_color(printc.COLOR_GREEN, "Sensor_module started...")
 }
 
 
@@ -205,7 +204,6 @@ func check_command_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan q
 
 		if(should_take_action(got_order, &(hold[i]))){
 
-			fmt.Println(order_chan)
 			post.Floor = i
 			post.Button_type = button_type
 			order_chan <- post
@@ -214,7 +212,6 @@ func check_command_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan q
 			
 		}
 	}
-
 }
 	
 func check_up_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan queue_module.Queue_post){
@@ -237,7 +234,6 @@ func check_up_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan queue_
 			
 		}
 	}
-
 }
 
 func check_down_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan queue_module.Queue_post){
@@ -260,5 +256,4 @@ func check_down_orders(hold * [driver_module.N_FLOORS]bool, order_chan chan queu
 			
 		}
 	}
-
 }

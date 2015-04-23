@@ -10,12 +10,12 @@ func ima_listen() {
         service := broad_cast + ":" + UDP_port
         addr, err := net.ResolveUDPAddr("udp4", service)
         if err != nil {
-                printc.DataWithColor(printc.COLOR_RED,"network.IMAListen()--> ResolveUDP error")
+                printc.Data_with_color(printc.COLOR_RED,"network.IMAListen()--> ResolveUDP error")
                 internal_chan.setup_fail <- true
         }
         sock, err := net.ListenUDP("udp4", addr)
         if err != nil {
-                printc.DataWithColor(printc.COLOR_RED,"network.IMAListen()--> ListenUDP error")
+                printc.Data_with_color(printc.COLOR_RED,"network.IMAListen()--> ListenUDP error")
                 internal_chan.setup_fail <- true
         }
         var data [512]byte
@@ -26,7 +26,7 @@ func ima_listen() {
                 default:
                         _, remoteAddr, err := sock.ReadFromUDP(data[0:])
                         if err != nil {
-                                printc.DataWithColor(printc.COLOR_RED,"network.IMAListen()--> ReadFromUDP error")
+                                printc.Data_with_color(printc.COLOR_RED,"network.IMAListen()--> ReadFromUDP error")
                                 break
                         }
                         if LOCAL_IP != remoteAddr.IP.String() {
@@ -34,7 +34,7 @@ func ima_listen() {
                                         elevIP := remoteAddr.IP.String()
                                         internal_chan.ima <- elevIP
                                 } else {
-                                        printc.DataWithColor(printc.COLOR_RED,"network.IMAListen()--> UDP read error")
+                                        printc.Data_with_color(printc.COLOR_RED,"network.IMAListen()--> UDP read error")
                                 } 
                         } 
                 } 
@@ -45,7 +45,7 @@ func ima_watcher() {
         peers := make(map[string]time.Time)
         deadline := IMA_LOSS * IMA_PERIOD * time.Millisecond
         for {
-                //printc.DataWithColor(printc.COLOR_CYAN,"ROUND ROUND GET AROUND I GET AROUND")
+                //printc.Data_with_color(printc.COLOR_CYAN,"ROUND ROUND GET AROUND I GET AROUND")
                 select {
                 case ip := <-internal_chan.ima:
                         _, inMap := peers[ip]
@@ -58,7 +58,7 @@ func ima_watcher() {
                 case <-time.After(ALIVE_WATCH * time.Millisecond):
                         for ip, timestamp := range peers {
                                 if time.Now().After(timestamp.Add(deadline)) {
-                                        printc.DataWithColor(printc.COLOR_RED, "network.imaWatcher --> Timeout", ip)
+                                        printc.Data_with_color(printc.COLOR_RED, "network.imaWatcher --> Timeout", ip)
                                         external_chan.Get_dead_elevator <- ip
                                         internal_chan.close_conn <- ip
                                         delete(peers, ip)
@@ -68,10 +68,10 @@ func ima_watcher() {
                         internal_chan.close_conn <- deadIP
                         delete(peers, deadIP)
                 case errorIP := <-internal_chan.error_IP:
-                        printc.DataWithColor(printc.COLOR_CYAN,"I DID PASS!!!")
+                        printc.Data_with_color(printc.COLOR_CYAN,"I DID PASS!!!")
                         _, inMap := peers[errorIP]
                         if inMap {
-                                printc.DataWithColor(printc.COLOR_CYAN,"You are giving me a panicattack!! FUCK YOU")
+                                printc.Data_with_color(printc.COLOR_CYAN,"You are giving me a panicattack!! FUCK YOU")
                                 external_chan.Panic <- true
                         }
                 case <-internal_chan.quit_ima_watcher:
@@ -84,12 +84,12 @@ func ima_send() {
         service := broad_cast + ":" + UDP_port
         addr, err := net.ResolveUDPAddr("udp4", service)
         if err != nil {
-                printc.DataWithColor(printc.COLOR_RED,"network.IMASend()--> Resolve error")
+                printc.Data_with_color(printc.COLOR_RED,"network.IMASend()--> Resolve error")
                 internal_chan.setup_fail <- true
         }
         imaSock, err := net.DialUDP("udp4", nil, addr)
         if err != nil {
-                printc.DataWithColor(printc.COLOR_RED,"network.IMASend()--> Dial error")
+                printc.Data_with_color(printc.COLOR_RED,"network.IMASend()--> Dial error")
                 internal_chan.setup_fail <- true
         }
         ima := []byte("IMA")
@@ -100,7 +100,7 @@ func ima_send() {
                 default:
                         _, err := imaSock.Write(ima)
                         if err != nil {
-                                printc.DataWithColor(printc.COLOR_RED,"network.IMASend()--> UDP send error")
+                                printc.Data_with_color(printc.COLOR_RED,"network.IMASend()--> UDP send error")
                         }
                         time.Sleep(IMA_PERIOD * time.Millisecond)
                 }

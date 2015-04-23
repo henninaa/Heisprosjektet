@@ -14,13 +14,13 @@ const (
 	LOG_ALL			int 	= 		iota
 
 	COLOR_BLACK 	int 	= 		30
-	COLOR_RED 		int 	= 		31
-	COLOR_GREEN 	int 	= 		32
-	COLOR_YELLOW 	int 	= 		33
-	COLOR_BLUE 		int 	= 		34
-	COLOR_MAGENTA 	int 	= 		35
-	COLOR_CYAN 		int 	= 		36
-	COLOR_WHITE 	int 	= 		37
+	COLOR_RED 		int 	= 		31	//Error!
+	COLOR_GREEN 	int 	= 		32	//Success
+	COLOR_YELLOW 	int 	= 		33	//FSM_module
+	COLOR_BLUE 		int 	= 		34	//Bank_module
+	COLOR_MAGENTA 	int 	= 		35	//Network_module
+	COLOR_CYAN 		int 	= 		36	//Queue_module
+	COLOR_WHITE 	int 	= 		37	
 )
 
 var logLevel = LOG_ALL
@@ -44,7 +44,7 @@ func Data(values ... interface{}) {
 	}
 }
 
-func DataWithColor(color int, values ... interface{}) {
+func Data_with_color(color int, values ... interface{}) {
 
 	if logLevel >= LOG_ALL {
 
@@ -64,13 +64,13 @@ func DataWithColor(color int, values ... interface{}) {
 func Error(values ... interface{}) {
 	
 	if logLevel >= LOG_ERROR {
-		DataWithColor(COLOR_RED, values)
+		Data_with_color(COLOR_RED, values)
 	}
 }
 
 func Warning(values ... interface{}) {
 	
 	if logLevel >= LOG_WARNING {
-		DataWithColor(COLOR_YELLOW, values)
+		Data_with_color(COLOR_YELLOW, values)
 	}
 }
