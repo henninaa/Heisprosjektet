@@ -70,11 +70,28 @@ func (queue_class * Queue_type) Get_new_direction(current_floor int) int{
 
 }
 
-func (queue_class * Queue_type) Should_elevator_stop(current_floor int, direction driver_module.Elev_button_type_t) bool{
+func (queue_class * Queue_type) Should_elevator_stop(current_floor int, direction driver_module.Elev_button_type_t, post * Queue_post) bool{
 
-	if(current_floor == queue_class.queue.list[0].Floor && (queue_class.queue.list[0].Button_type == driver_module.BUTTON_COMMAND || queue_class.queue.list[0].Button_type == direction)){
+	if(current_floor == queue_class.queue.list[0].Floor && queue_class.queue.list[0].Button_type == driver_module.BUTTON_COMMAND){
+		turn_off_lights(current_floor, queue_class.queue.list[0].Button_type)
+		post.Floor = current_floor
+		post.Button_type = queue_class.queue.list[0].Button_type
 		queue_class.queue.queue_remove_multiple_floors(queue_class.queue.list[0])
-		//turn_off_lights(current_floor)
+		
+		return true
+	}else if(current_floor == queue_class.queue.list[0].Floor && direction == driver_module.BUTTON_COMMAND){
+		turn_off_lights(current_floor, queue_class.queue.list[0].Button_type)
+		post.Floor = current_floor
+		post.Button_type = queue_class.queue.list[0].Button_type
+		queue_class.queue.queue_remove_multiple_floors(queue_class.queue.list[0])
+		
+		return true
+	} else if(current_floor == queue_class.queue.list[0].Floor && (queue_class.queue.list[0].Button_type == direction || queue_class.queue.list[1].Floor == -1)){
+		turn_off_lights(current_floor, queue_class.queue.list[0].Button_type)
+		post.Floor = current_floor
+		post.Button_type = queue_class.queue.list[0].Button_type
+		queue_class.queue.queue_remove_multiple_floors(queue_class.queue.list[0])
+
 		return true
 	}
 	return false
@@ -166,26 +183,18 @@ func (queue * queue_list) queue_remove_multiple_floors(post Queue_post){
 
 }
 
-func (queue * Queue_type) turn_on_light(insert_floor int, insert_type driver_module.Elev_button_type_t){
+func turn_on_light(insert_floor int, insert_type driver_module.Elev_button_type_t){
 
 	
-	if (queue.order_lights[insert_floor][insert_type] == false){
 		driver_module.Elev_set_button_lamp(insert_type, insert_floor, 1)
-		queue.order_lights[insert_floor][insert_type] = true
-	}
+
 }
 
-func (queue * Queue_type) turn_off_lights(floor int){
+func turn_off_lights(floor int, itype driver_module.Elev_button_type_t){
 
-	var order_type driver_module.Elev_button_type_t
 
-	for order_type = 0; order_type<3; order_type++{
+			driver_module.Elev_set_button_lamp(itype, floor, 0)
 
-		if(queue.order_lights[floor][order_type]){
-			queue.order_lights[floor][order_type] = false
-			driver_module.Elev_set_button_lamp(order_type, floor, 0)
-		}
-	}
 
 }
 
@@ -194,6 +203,8 @@ func (queue * queue_list) insert(insert_floor int, insert_type driver_module.Ele
 	var input_post Queue_post
 	input_post.Floor = insert_floor
 	input_post.Button_type = insert_type
+
+	turn_on_light(insert_floor, insert_type)
 
 	Debug_message("got queue insert " + string(insert_floor) + " " + string(current_floor), "Queue_insert")
 

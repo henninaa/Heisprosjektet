@@ -10,237 +10,237 @@ import (
         "printc"
 )
 
-func manageTCPConnections() {
-        connections := connMap{make(map[string]connChans)}
-        go listenForTCPConnections()
+func manage_TCP_connections() {
+        connections := conn_map{make(map[string]conn_chans)}
+        go listen_for_TCP_connections()
         for {
                 select {
-                case newIP := <-internalChan.newIP:
-                        connections.handleNewIP(newIP)
+                case new_IP := <-internal_chan.new_IP:
+                        connections.handle_new_IP(new_IP)
 
-                case newTCPConnection := <-internalChan.updateTCPMap:
-                        connections.handleNewConnection(newTCPConnection)
+                case new_TCP_connection := <-internal_chan.update_TCP_map:
+                        connections.handle_new_connection(new_TCP_connection)
 
-                case errorIP := <-internalChan.connectFail:
-                        connections.handleFailedToConnect(errorIP)
+                case error_IP := <-internal_chan.connect_fail:
+                        connections.handle_failed_to_connect(error_IP)
 
-                case errorIP := <-internalChan.connectionError:
-                        connections.handleConnectionError(errorIP)
+                case error_IP := <-internal_chan.connection_error:
+                        connections.handle_connection_error(error_IP)
 
-                case closeIP := <-internalChan.closeConn:
-                        connections.handleCloseConnection(closeIP)
+                case close_IP := <-internal_chan.close_conn:
+                        connections.handle_close_connection(close_IP)
 
-                case mail := <-externalChan.SendToAll:
-                        connections.handleSendToAll(mail)
+                case mail := <-external_chan.Send_to_all:
+                        connections.handle_send_to_all(mail)
 
-                case mail := <-externalChan.SendToOne:
-                        connections.handleSendToOne(mail)
+                case mail := <-external_chan.Send_to_one:
+                        connections.handle_send_to_one(mail)
 
-                case <-internalChan.quitTCPMap:
+                case <-internal_chan.quit_TCP_map:
                         return
                 } 
         } 
 } 
 
-func (connections *connMap) handleNewIP(newIP string) {
-        _, inMap := connections.tcpMap[newIP]
-        if !inMap {
-                go connectTCP(newIP)
+func (connections *conn_map) handle_new_IP(new_IP string) {
+        _, in_Map := connections.tcp_map[new_IP]
+        if !in_Map {
+                go connect_TCP(new_IP)
         } else {
-                printc.DataWithColor(printc.COLOR_YELLOW,"network.monitorTCPConnections-->", newIP, "already in connections")
+                printc.DataWithColor(printc.COLOR_YELLOW,"network.monitorTCPConnections-->", new_IP, "already in connections")
         }
 }
 
-func (connections *connMap) handleNewConnection(conn tcpConnection) {
-        _, inMap := connections.tcpMap[conn.ip]
-        if !inMap {
-                connections.tcpMap[conn.ip] = connChans{send: make(chan Mail), quit: make(chan bool)} 
+func (connections *conn_map) handle_new_connection(conn tcp_connection) {
+        _, in_Map := connections.tcp_map[conn.ip]
+        if !in_Map {
+                connections.tcp_map[conn.ip] = conn_chans{send: make(chan Mail), quit: make(chan bool)} 
                 printc.DataWithColor(printc.COLOR_GREEN,"network.monitorTCPConnections---> Connection made to ", conn.ip)
-                conn.sendChan = connections.tcpMap[conn.ip].send
-                conn.quit = connections.tcpMap[conn.ip].quit
-                go conn.handleConnection()
-                go peerUpdate(len(connections.tcpMap))
+                conn.sendChan = connections.tcp_map[conn.ip].send
+                conn.quit = connections.tcp_map[conn.ip].quit
+                go conn.handle_connection()
+                go peer_update(len(connections.tcp_map))
         } else {
                 printc.DataWithColor(printc.COLOR_YELLOW,"network.monitorTCPConnections--> A connection already exist to", conn.ip)
                 conn.socket.Close()
         }
 }
 
-func (connections *connMap) handleFailedToConnect(errorIP string) {
-        _, inMap := connections.tcpMap[errorIP]
-        if inMap {
-                printc.DataWithColor(printc.COLOR_YELLOW,"network.monitorTCPConnections--> Could not dial up ", errorIP, "but a connection already exist")
+func (connections *conn_map) handle_failed_to_connect(error_IP string) {
+        _, in_Map := connections.tcp_map[error_IP]
+        if in_Map {
+                printc.DataWithColor(printc.COLOR_YELLOW,"network.monitorTCPConnections--> Could not dial up ", error_IP, "but a connection already exist")
         } else {
-                printc.DataWithColor(printc.COLOR_RED,"network.monitorTCPConnections--> Could not connect to ", errorIP)
-                internalChan.errorIP <- errorIP //Notify imaWatcher of erroneous ip. Maybe it has timed out?
+                printc.DataWithColor(printc.COLOR_RED,"network.monitorTCPConnections--> Could not connect to ", error_IP)
+                internal_chan.error_IP <- error_IP //Notify imaWatcher of erroneous ip. Maybe it has timed out?
                 printc.DataWithColor(printc.COLOR_CYAN,"YOU SHALL NOT PASS!!!!")
         }
 }
 
-func (connections *connMap) handleConnectionError(errorIP string) {
-        _, inMap := connections.tcpMap[errorIP]
-        if inMap {
-                delete(connections.tcpMap, errorIP)
+func (connections *conn_map) handle_connection_error(error_IP string) {
+        _, in_Map := connections.tcp_map[error_IP]
+        if in_Map {
+                delete(connections.tcp_map, error_IP)
         }
-        go connectTCP(errorIP)
+        go connect_TCP(error_IP)
 }
 
-func (connections *connMap) handleCloseConnection(closeIP string) {
-        connChans, inMap := connections.tcpMap[closeIP]
-        printc.DataWithColor(printc.COLOR_CYAN,"ConnChans ", connChans, "inMap ", inMap)
-        if inMap {
+func (connections *conn_map) handle_close_connection(close_IP string) {
+        conn_chans, in_Map := connections.tcp_map[close_IP]
+        printc.DataWithColor(printc.COLOR_CYAN,"conn_chans ", conn_chans, "in_Map ", in_Map)
+        if in_Map {
                 select {
-                case connChans.quit <- true:
+                case conn_chans.quit <- true:
                 case <-time.After(10 * time.Millisecond):
                 }
-                delete(connections.tcpMap, closeIP)
-                numOfConns := len(connections.tcpMap)
-                if numOfConns == 0 {
-                        go peerUpdate(numOfConns)
+                delete(connections.tcp_map, close_IP)
+                num_of_conns := len(connections.tcp_map)
+                if num_of_conns == 0 {
+                        go peer_update(num_of_conns)
                 }
         } else {
-                printc.DataWithColor(printc.COLOR_YELLOW,"network.monitorTCPConnections--> No connection to close ", closeIP)
+                printc.DataWithColor(printc.COLOR_YELLOW,"network.monitorTCPConnections--> No connection to close ", close_IP)
 
         }
 }
 
-func (connections *connMap) handleSendToOne(mail Mail) {
+func (connections *conn_map) handle_send_to_one(mail Mail) {
         printc.DataWithColor(printc.COLOR_BLUE,"IP: ", mail.IP)
         switch mail.IP {
         case "":
-                size := len(connections.tcpMap)
+                size := len(connections.tcp_map)
                 if size != 0 {
-                        for _, connChans := range connections.tcpMap {
-                                connChans.send <- mail 
+                        for _, conn_chans := range connections.tcp_map {
+                                conn_chans.send <- mail 
                                 break
                         }
                 }
         default:
-                connChans, inMap := connections.tcpMap[mail.IP]
-                if inMap {
-                        connChans.send <- mail
+                conn_chans, in_Map := connections.tcp_map[mail.IP]
+                if in_Map {
+                        conn_chans.send <- mail
                 } else {
-                        internalChan.errorIP <- mail.IP
+                        internal_chan.error_IP <- mail.IP
                 }
         }
 }
 
-func (connections *connMap) handleSendToAll(mail Mail) {
-        if len(connections.tcpMap) != 0 {
-                for _, connChans := range connections.tcpMap {
-                        connChans.send <- mail
+func (connections *conn_map) handle_send_to_all(mail Mail) {
+        if len(connections.tcp_map) != 0 {
+                for _, conn_chans := range connections.tcp_map {
+                        conn_chans.send <- mail
                 }
         }
 }
 
-func (conn *tcpConnection) handleConnection() {
-        quitInbox := make(chan bool)
-        go conn.inbox(quitInbox)
-        printc.DataWithColor(printc.COLOR_BLUE,"Network.handleConnection--> handleConnection for", conn.ip, "is running")
-        conEnc := gob.NewEncoder(conn.socket)
+func (conn *tcp_connection) handle_connection() {
+        quit_inbox := make(chan bool)
+        go conn.inbox(quit_inbox)
+        printc.DataWithColor(printc.COLOR_BLUE,"Network.handle_connection--> handle_connection for", conn.ip, "is running")
+        connection_encoder := gob.NewEncoder(conn.socket)
         for {
                 select {
                 case mail := <-conn.sendChan:
-                        encodedMsg := mail.Msg
-                        err := conEnc.Encode(&encodedMsg)
+                        encoded_msg := mail.Msg
+                        err := connection_encoder.Encode(&encoded_msg)
                         if err == nil {
                                 printc.DataWithColor(printc.COLOR_CYAN, "Message sendt without problem :)")
                         } else {
-                                printc.DataWithColor(printc.COLOR_RED,"Network.handleConnection--> Error sending message to ", conn.ip, err)
-                                internalChan.connectionError <- conn.ip 
+                                printc.DataWithColor(printc.COLOR_RED,"Network.handle_connection--> Error sending message to ", conn.ip, err)
+                                internal_chan.connection_error <- conn.ip 
                         }
                 case <-conn.quit:
                         conn.socket.Close()
-                        printc.DataWithColor(printc.COLOR_YELLOW,"Network.handleConnections--> Connection to ", conn.ip, " has been terminated.")
+                        printc.DataWithColor(printc.COLOR_YELLOW,"Network.handle_connections--> Connection to ", conn.ip, " has been terminated.")
                         return
-                case <-quitInbox:
+                case <-quit_inbox:
                         conn.socket.Close()
-                        printc.DataWithColor(printc.COLOR_YELLOW,"Network.handleConnections--> Connection to ", conn.ip, " has been terminated.")
-                        internalChan.connectionError <- conn.ip
+                        printc.DataWithColor(printc.COLOR_YELLOW,"Network.handle_connections--> Connection to ", conn.ip, " has been terminated.")
+                        internal_chan.connection_error <- conn.ip
                         return
                 }
         }
 }
 
-func (conn *tcpConnection) inbox(quitInbox chan bool) {
-        conDec := gob.NewDecoder(conn.socket)
+func (conn *tcp_connection) inbox(quit_inbox chan bool) {
+        connection_decoder := gob.NewDecoder(conn.socket)
         for {
-                decodedMsg := new(Message)
-                err := conDec.Decode(decodedMsg)
+                decoded_msg := new(Message)
+                err := connection_decoder.Decode(decoded_msg)
                 switch err {
                 case nil:
-                        newMail := Mail{IP: conn.ip, Msg: *decodedMsg}
-                        externalChan.Inbox <- newMail
+                        new_mail := Mail{IP: conn.ip, Msg: *decoded_msg}
+                        external_chan.Inbox <- new_mail
                 default:
                         printc.DataWithColor(printc.COLOR_RED,"Network.inbox--> Error:", err)
-                        time.Sleep(IMAPERIOD * IMALOSS * 2 * time.Millisecond)
+                        time.Sleep(IMA_PERIOD * IMA_LOSS * 2 * time.Millisecond)
                         select {
-                        case quitInbox <- true: 
-                        case <-time.After(WRITEDL * time.Millisecond):
+                        case quit_inbox <- true: 
+                        case <-time.After(WRITE_DL * time.Millisecond):
                         }
                         return
                 }
         }
 }
 
-func connectTCP(ip string) {
+func connect_TCP(ip string) {
         attempts := 0
-        for attempts < CONNATMPT {
-                printc.DataWithColor(printc.COLOR_YELLOW,"Network.connectTCP--> attempting to connect to ", ip)
-                service := ip + ":" + TCPport
+        for attempts < CONN_ATMPT {
+                printc.DataWithColor(printc.COLOR_YELLOW,"Network.connect_TCP--> attempting to connect to ", ip)
+                service := ip + ":" + TCP_port
                 _, err := net.ResolveTCPAddr("tcp4", service)
                 if err != nil {
-                        printc.DataWithColor(printc.COLOR_RED,"Network.connectTCP--> ResolveTCPAddr failed")
+                        printc.DataWithColor(printc.COLOR_RED,"Network.connect_TCP--> ResolveTCPAddr failed")
                         attempts++
-                        time.Sleep(DIALINT * time.Millisecond)
+                        time.Sleep(DIAL_INT * time.Millisecond)
                 } else {
-                        randSleep := time.Duration(rand.Intn(500)+500) * time.Microsecond
-                        printc.DataWithColor(printc.COLOR_MAGENTA,"Network.connectTCP--> randSleep:", randSleep)
-                        time.Sleep(randSleep)
+                        rand_sleep := time.Duration(rand.Intn(500)+500) * time.Microsecond
+                        printc.DataWithColor(printc.COLOR_MAGENTA,"Network.connect_TCP--> rand_sleep:", rand_sleep)
+                        time.Sleep(rand_sleep)
                         socket, err := net.Dial("tcp4", service)
                         if err != nil {
-                                printc.DataWithColor(printc.COLOR_RED,"Network.connectTCP--> DialTCP error when connecting to", ip, " error: ", err)
+                                printc.DataWithColor(printc.COLOR_RED,"Network.connect_TCP--> DialTCP error when connecting to", ip, " error: ", err)
                                 attempts++
-                                time.Sleep(DIALINT * time.Millisecond)
+                                time.Sleep(DIAL_INT * time.Millisecond)
                         } else {
-                                newTCPConnection := tcpConnection{ip: ip, socket: socket}
-                                internalChan.updateTCPMap <- newTCPConnection 
+                                new_TCP_connection := tcp_connection{ip: ip, socket: socket}
+                                internal_chan.update_TCP_map <- new_TCP_connection 
                                 break
                         }
                 }
         }
-        if attempts == CONNATMPT {
+        if attempts == CONN_ATMPT {
                 select {
-                case internalChan.connectFail <- ip: 
-                case <-time.After(CONNFAILTIMEOUT * time.Millisecond): 
+                case internal_chan.connect_fail <- ip: 
+                case <-time.After(CONN_FAIL_TIMEOUT * time.Millisecond): 
                         return
                 }
         }
 }
 
-func listenForTCPConnections() {
-        service := ":" + TCPport
-        tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
+func listen_for_TCP_connections() {
+        service := ":" + TCP_port
+        tcp_addr, err := net.ResolveTCPAddr("tcp4", service)
         if err != nil {
-                printc.DataWithColor(printc.COLOR_RED,"Network.listenForTCPConnections--> TCP resolve error")
-                internalChan.setupfail <- true
+                printc.DataWithColor(printc.COLOR_RED,"Network.listen_for_TCP_connections--> TCP resolve error")
+                internal_chan.setup_fail <- true
         } else {
-                listenSock, err := net.ListenTCP("tcp4", tcpAddr)
+                listen_sock, err := net.ListenTCP("tcp4", tcp_addr)
                 if err != nil {
-                        printc.DataWithColor(printc.COLOR_RED,"Network.connectTCP--> ListenTCP error")
-                        internalChan.setupfail <- true
+                        printc.DataWithColor(printc.COLOR_RED,"Network.connect_TCP--> ListenTCP error")
+                        internal_chan.setup_fail <- true
                 } else {
-                        printc.DataWithColor(printc.COLOR_YELLOW,"Network.connectTCP--> listening for new connections")
+                        printc.DataWithColor(printc.COLOR_YELLOW,"Network.connect_TCP--> listening for new connections")
                         for {
                                 select {
-                                case <-internalChan.quitListenTCP:
+                                case <-internal_chan.quit_listen_TCP:
                                         return
                                 default:
-                                        socket, err := listenSock.Accept()
+                                        socket, err := listen_sock.Accept()
                                         if err == nil {
-                                                ip := cleanUpIP(socket.RemoteAddr().String())
-                                                newTCPConnection := tcpConnection{ip: ip, socket: socket}
-                                                internalChan.updateTCPMap <- newTCPConnection
+                                                ip := clean_up_IP(socket.RemoteAddr().String())
+                                                new_TCP_connection := tcp_connection{ip: ip, socket: socket}
+                                                internal_chan.update_TCP_map <- new_TCP_connection
                                         }
                                 }
                         }
@@ -248,14 +248,14 @@ func listenForTCPConnections() {
         }
 }
 
-func peerUpdate(numOfPeers int) {
+func peer_update(num_of_peers int) {
         select {
-        case externalChan.NumOfPeers <- numOfPeers:
+        case external_chan.Num_of_peers <- num_of_peers:
         case <-time.After(500 * time.Millisecond):
         }
 }
 
-func cleanUpIP(garbage string) (cleanIP string) {
+func clean_up_IP(garbage string) (cleanIP string) {
         split := strings.Split(garbage, ":") 
         cleanIP = split[0]
         return

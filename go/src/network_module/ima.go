@@ -6,22 +6,22 @@ import (
         "printc"
 )
 
-func imaListen() {
-        service := bcast + ":" + UDPport
+func ima_listen() {
+        service := broad_cast + ":" + UDP_port
         addr, err := net.ResolveUDPAddr("udp4", service)
         if err != nil {
                 printc.DataWithColor(printc.COLOR_RED,"network.IMAListen()--> ResolveUDP error")
-                internalChan.setupfail <- true
+                internal_chan.setup_fail <- true
         }
         sock, err := net.ListenUDP("udp4", addr)
         if err != nil {
                 printc.DataWithColor(printc.COLOR_RED,"network.IMAListen()--> ListenUDP error")
-                internalChan.setupfail <- true
+                internal_chan.setup_fail <- true
         }
         var data [512]byte
         for {
                 select {
-                case <-internalChan.quitImaListen:
+                case <-internal_chan.quit_ima_listen:
                         return
                 default:
                         _, remoteAddr, err := sock.ReadFromUDP(data[0:])
@@ -29,10 +29,10 @@ func imaListen() {
                                 printc.DataWithColor(printc.COLOR_RED,"network.IMAListen()--> ReadFromUDP error")
                                 break
                         }
-                        if LOCALIP != remoteAddr.IP.String() {
+                        if LOCAL_IP != remoteAddr.IP.String() {
                                 if err == nil {
                                         elevIP := remoteAddr.IP.String()
-                                        internalChan.ima <- elevIP
+                                        internal_chan.ima <- elevIP
                                 } else {
                                         printc.DataWithColor(printc.COLOR_RED,"network.IMAListen()--> UDP read error")
                                 } 
@@ -41,68 +41,68 @@ func imaListen() {
         } 
 } 
 
-func imaWatcher() {
+func ima_watcher() {
         peers := make(map[string]time.Time)
-        deadline := IMALOSS * IMAPERIOD * time.Millisecond
+        deadline := IMA_LOSS * IMA_PERIOD * time.Millisecond
         for {
                 //printc.DataWithColor(printc.COLOR_CYAN,"ROUND ROUND GET AROUND I GET AROUND")
                 select {
-                case ip := <-internalChan.ima:
+                case ip := <-internal_chan.ima:
                         _, inMap := peers[ip]
                         if inMap {
                                 peers[ip] = time.Now()
                         } else {
                                 peers[ip] = time.Now()
-                                internalChan.newIP <- ip
+                                internal_chan.new_IP <- ip
                         }
-                case <-time.After(ALIVEWATCH * time.Millisecond):
+                case <-time.After(ALIVE_WATCH * time.Millisecond):
                         for ip, timestamp := range peers {
                                 if time.Now().After(timestamp.Add(deadline)) {
                                         printc.DataWithColor(printc.COLOR_RED, "network.imaWatcher --> Timeout", ip)
-                                        externalChan.GetDeadElevator <- ip
-                                        internalChan.closeConn <- ip
+                                        external_chan.Get_dead_elevator <- ip
+                                        internal_chan.close_conn <- ip
                                         delete(peers, ip)
                                 }
                         }
-                case deadIP := <-externalChan.SendDeadElevator:
-                        internalChan.closeConn <- deadIP
+                case deadIP := <-external_chan.Send_dead_elevator:
+                        internal_chan.close_conn <- deadIP
                         delete(peers, deadIP)
-                case errorIP := <-internalChan.errorIP:
+                case errorIP := <-internal_chan.error_IP:
                         printc.DataWithColor(printc.COLOR_CYAN,"I DID PASS!!!")
                         _, inMap := peers[errorIP]
                         if inMap {
                                 printc.DataWithColor(printc.COLOR_CYAN,"You are giving me a panicattack!! FUCK YOU")
-                                externalChan.Panic <- true
+                                external_chan.Panic <- true
                         }
-                case <-internalChan.quitImaWatcher:
+                case <-internal_chan.quit_ima_watcher:
                         return
                 }
         }
 }
 
-func imaSend() {
-        service := bcast + ":" + UDPport
+func ima_send() {
+        service := broad_cast + ":" + UDP_port
         addr, err := net.ResolveUDPAddr("udp4", service)
         if err != nil {
                 printc.DataWithColor(printc.COLOR_RED,"network.IMASend()--> Resolve error")
-                internalChan.setupfail <- true
+                internal_chan.setup_fail <- true
         }
         imaSock, err := net.DialUDP("udp4", nil, addr)
         if err != nil {
                 printc.DataWithColor(printc.COLOR_RED,"network.IMASend()--> Dial error")
-                internalChan.setupfail <- true
+                internal_chan.setup_fail <- true
         }
         ima := []byte("IMA")
         for {
                 select {
-                case <-internalChan.quitImaSend:
+                case <-internal_chan.quit_ima_send:
                         return
                 default:
                         _, err := imaSock.Write(ima)
                         if err != nil {
                                 printc.DataWithColor(printc.COLOR_RED,"network.IMASend()--> UDP send error")
                         }
-                        time.Sleep(IMAPERIOD * time.Millisecond)
+                        time.Sleep(IMA_PERIOD * time.Millisecond)
                 }
         }
 }

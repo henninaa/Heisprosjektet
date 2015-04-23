@@ -1,61 +1,62 @@
 package network_module
 
-type internalChannels struct {
-        setupfail       chan bool
+type internal_channels struct {
+        setup_fail       chan bool
         ima             chan string
-        newIP           chan string
-        deadElevator    chan string
-        updateTCPMap    chan tcpConnection
-        connectFail     chan string
-        closeConn       chan string
-        errorIP         chan string
-        connectionError chan string
-        deleteConn      chan string
-        quitImaSend     chan bool
-        quitImaListen   chan bool
-        quitImaWatcher  chan bool
-        quitListenTCP   chan bool
-        quitTCPMap      chan bool
+        new_IP           chan string
+        dead_elevator    chan string
+        update_TCP_map    chan tcp_connection
+        connect_fail     chan string
+        close_conn       chan string
+        error_IP         chan string
+        connection_error chan string
+        delete_conn      chan string
+        quit_ima_send     chan bool
+        quit_ima_listen   chan bool
+        quit_ima_watcher  chan bool
+        quit_listen_TCP   chan bool
+        quit_TCP_map      chan bool
 }
 
-type NetChannels struct {
-        GetDeadElevator  chan string
-        SendDeadElevator chan string
-        SendToAll        chan Mail
-        SendToOne        chan Mail
-        Inbox            chan Mail
-        NumOfPeers       chan int
-        Panic            chan bool
-        New_connection  chan string
+type Net_channels struct {
+        Get_dead_elevator  chan string
+        Send_dead_elevator chan string
+        Send_to_all        chan Mail
+        Send_to_one        chan Mail
+        Inbox              chan Mail
+        Num_of_peers       chan int
+        Panic              chan bool
+        New_connection     chan string
 }
 
-var internalChan internalChannels
-var externalChan NetChannels
+var internal_chan internal_channels
+var external_chan Net_channels
 
-func (internalChan *internalChannels) init() {
-        internalChan.setupfail = make(chan bool)
-        internalChan.ima = make(chan string)
-        internalChan.newIP = make(chan string)
-        internalChan.deadElevator = make(chan string)
-        internalChan.updateTCPMap = make(chan tcpConnection)
-        internalChan.connectFail = make(chan string)
-        internalChan.connectionError = make(chan string)
-        internalChan.errorIP = make(chan string)
-        internalChan.closeConn = make(chan string)
-        internalChan.deleteConn = make(chan string)
-        internalChan.quitImaSend = make(chan bool)
-        internalChan.quitImaListen = make(chan bool)
-        internalChan.quitImaWatcher = make(chan bool)
-        internalChan.quitListenTCP = make(chan bool)
-        internalChan.quitTCPMap = make(chan bool)
+func (internal_chan *internal_channels) init() {
+        internal_chan.setup_fail = make(chan bool)
+        internal_chan.ima = make(chan string)
+        internal_chan.new_IP = make(chan string)
+        internal_chan.dead_elevator = make(chan string)
+        internal_chan.update_TCP_map = make(chan tcp_connection)
+        internal_chan.connect_fail = make(chan string)
+        internal_chan.connection_error = make(chan string)
+        internal_chan.error_IP = make(chan string)
+        internal_chan.close_conn = make(chan string)
+        internal_chan.delete_conn = make(chan string)
+        internal_chan.quit_ima_send = make(chan bool)
+        internal_chan.quit_ima_listen = make(chan bool)
+        internal_chan.quit_ima_watcher = make(chan bool)
+        internal_chan.quit_listen_TCP = make(chan bool)
+        internal_chan.quit_TCP_map = make(chan bool)
 }
 
-func (externalChan *NetChannels) NetChanInit() {
-        externalChan.GetDeadElevator = make(chan string)
-        externalChan.SendDeadElevator = make(chan string)
-        externalChan.SendToAll = make(chan Mail)
-        externalChan.SendToOne = make(chan Mail)
-        externalChan.Inbox = make(chan Mail)
-        externalChan.NumOfPeers = make(chan int)
-        externalChan.Panic = make(chan bool)
+func (external_chan *Net_channels) Init() {
+        external_chan.Get_dead_elevator = make(chan string)
+        external_chan.Send_dead_elevator = make(chan string)
+        external_chan.Send_to_all = make(chan Mail)
+        external_chan.Send_to_one = make(chan Mail)
+        external_chan.Inbox = make(chan Mail)
+        external_chan.Num_of_peers = make(chan int)
+        external_chan.Panic = make(chan bool)
+        external_chan.New_connection = make(chan string)
 }

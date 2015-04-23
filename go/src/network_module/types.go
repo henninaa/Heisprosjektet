@@ -1,17 +1,20 @@
 package network_module
 
-import "net"
+import (
+        "net"
+        "driver_module"
+        )
 
 const (
-        IMAPERIOD       = 25
-        IMALOSS         = 4
-        ALIVEWATCH      = 10
-        NETSETUP        = 200
-        DIALINT         = 50
-        CONNATMPT       = 5
-        WRITEDL         = 10
-        READDL          = 10
-        CONNFAILTIMEOUT = 2 * NETSETUP
+        IMA_PERIOD              = 25
+        IMA_LOSS                = 4
+        ALIVE_WATCH             = 10
+        NET_SETUP               = 200
+        DIAL_INT                = 50
+        CONN_ATMPT              = 5
+        WRITE_DL                = 10
+        READ_DL                 = 10
+        CONN_FAIL_TIMEOUT       = 2 * NET_SETUP
 )
 
 const (
@@ -27,22 +30,22 @@ const (
 
 
 var (
-        bcast   = "129.241.187.255"
-        LOCALIP = GetMyIP()
-        UDPport = "9001"
-        TCPport = "9191"
+        broad_cast      = "129.241.187.255"
+        LOCAL_IP        = Get_my_IP()
+        UDP_port        = "9001"
+        TCP_port        = "9191"
 )
 
-type connMap struct {
-        tcpMap map[string]connChans
+type conn_map struct {
+        tcp_map map[string]conn_chans
 }
 
-type connChans struct {
+type conn_chans struct {
         send chan Mail
         quit chan bool
 }
 
-type tcpConnection struct {
+type tcp_connection struct {
         ip       string
         socket   net.Conn
         sendChan chan Mail
@@ -52,9 +55,8 @@ type tcpConnection struct {
 type Message struct{
         Msg_type string
         Floor int
-        Dir string
-        CostAnsw int
-        TakeOrdre string
+        Dir driver_module.Elev_button_type_t
+        Cost_answer int
 }
 
 type Mail struct {
@@ -62,6 +64,4 @@ type Mail struct {
         Msg Message
 }
 
-func (mail Mail) Make_mail(){
-        
-}
+

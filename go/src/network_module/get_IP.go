@@ -6,7 +6,7 @@ import (
         "printc"
 )
 
-func GetMyIP() string {
+func Get_my_IP() string {
         allIPs, err := net.InterfaceAddrs()
         if err != nil {
                 printc.DataWithColor(printc.COLOR_RED,"network.GetMyIP()--> Error receiving IPs. IP set to localhost. Consider setting IP manually")

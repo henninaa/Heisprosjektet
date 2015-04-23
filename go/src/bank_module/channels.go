@@ -17,12 +17,12 @@ type internal_channels struct{
 
 func (intern_chan * internal_channels) init(){
 
-	intern_chan.insert_to_queue = make(chan queue_module.Queue_post,2)
-	intern_chan.take_backup_order = make(chan queue_backup_post,2)
-	intern_chan.auction_order = make(chan queue_module.Queue_post,2)
-	intern_chan.new_direction = make(chan int,2)
-	intern_chan.order_executed = make(chan network_module.Mail,2)
-	intern_chan.check_stop_conditions = make(chan int,2)
+	intern_chan.insert_to_queue = make(chan queue_module.Queue_post,10)
+	intern_chan.take_backup_order = make(chan queue_backup_post,10)
+	intern_chan.auction_order = make(chan queue_module.Queue_post,10)
+	intern_chan.new_direction = make(chan int,10)
+	intern_chan.order_executed = make(chan network_module.Mail,10)
+	intern_chan.check_stop_conditions = make(chan int,10)
 
 }
 

@@ -3,16 +3,20 @@ package main
 import(
 	"driver_module"
 	"bank_module"
+	"os"
+	"os/signal"
 	)
 
 func main(){
 	
-	var deadChan = make(chan int, 1)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
 	driver_module.Elev_init()
 	
 	go bank_module.Elevator_main_control()
 
-	<-deadChan
+	<- c
+	driver_module.Elev_stop_engine()
 }
 

@@ -1,5 +1,7 @@
 package FSM_module
 
+import("printc")
+
 
 func state_machine(state * int, event int, internal_chan internal_channels){
 
@@ -24,17 +26,29 @@ func state_machine(state * int, event int, internal_chan internal_channels){
 
 func idle_state(state * int,event int, internal_chan internal_channels){
 
+	printc.DataWithColor(printc.COLOR_CYAN, "state: ", event)
+
 	switch(event){
+
+	case NEW_ORDER_E:
+
+		external_chan.Get_new_action <- 1
 		
-	case NEW_DIRECTION_E:
+	case NEW_DIRECTION_DOWN_E:
 
 		*state = moving
-		internal_chan.start_moving <- 1
+		internal_chan.descend <- 1
 
-	case STOP_E:
+	case NEW_DIRECTION_UP_E:
+
+		*state = moving
+		internal_chan.ascend <- 1
+
+	case RIGHT_FLOOR_E:
 
 		*state = door_open
 		internal_chan.open_door <- 1
+
 
 	}
 
@@ -47,6 +61,8 @@ func door_open_state(state * int, event int, internal_chan internal_channels){
 	case CLOSE_DOOR_E:
 
 		*state = idle
+
+		external_chan.Get_new_action  <- 1
 	}
 }
 
@@ -54,9 +70,9 @@ func moving_state(state * int, event int, internal_chan internal_channels){
 
 	switch(event){
 		
-	case STOP_E:
+	case RIGHT_FLOOR_E:
 
-
+		internal_chan.stop <- 1
 		*state = door_open
 	}
 }
@@ -65,9 +81,9 @@ func init_state(state * int ,event int, internal_chan internal_channels){
 
 	switch(event){
 		
-	case REACHED_FLOOR_E:
+	case RIGHT_FLOOR_E:
 
-		internal_chan.Stop <- 1
+		internal_chan.stop <- 1
 		*state = idle
 	}
 }
