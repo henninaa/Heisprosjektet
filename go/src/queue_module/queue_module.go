@@ -38,7 +38,9 @@ func (queue_class * Queue_type) Insert_to_backup_queue(insert_floor int, insert_
 
 }
 
-func (queue_class * Queue_type) Send_backup_to_auction(IP string, order_chan chan Queue_post){
+func (queue_class * Queue_type) Annex_backup(IP string, current_floor int){
+
+	var backup_ext_orders []Queue_post
 
 	for i:= 0; i<len(queue_class.Backup); i++{
 		if(queue_class.Backup[i].IP == IP){
@@ -46,13 +48,23 @@ func (queue_class * Queue_type) Send_backup_to_auction(IP string, order_chan cha
 			for j := range queue_class.Backup[i].queue.List{
 
 				if(queue_class.Backup[i].queue.List[j].Button_type != driver_module.BUTTON_COMMAND){
-					order_chan <- queue_class.Backup[i].queue.List[j]
+					backup_ext_orders = append(backup_ext_orders, queue_class.Backup[i].queue.List[j])
 				}
 			}
 
 			queue_class.remove_backup(i)
 			break
 		}
+	}
+
+	for _, order := range backup_ext_orders{
+
+		IP = queue_class.Get_lowest_cost_ip(order, current_floor)
+
+		if(IP == "self"){
+			queue_class.Queue.insert(order.Floor, order.Button_type, current_floor, true)
+		}
+
 	}
 
 }
@@ -253,6 +265,7 @@ func (queue * Queue_list) queue_remove_multiple_floors(post Queue_post, local_or
 	local_order = true
 	
 	for i := 0; i < QUEUE_SIZE; i++ {
+		printc.Data_with_color(printc.COLOR_MAGENTA, "QUEUE_SIZE: ", QUEUE_SIZE, "\ni: ", i, "\nqueue.List[i].Floor: ", queue.List[i].Floor, "find: ", find)
 
 		queue.List[previndex] = queue.List[i]
 
@@ -272,13 +285,14 @@ func (queue * Queue_list) queue_remove_multiple_floors(post Queue_post, local_or
 				if(local_order){turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)}
 				printc.Data_with_color(printc.COLOR_CYAN, "Treff: 1")
 				find = i +1
-				if(i<4){queue.check_for_delete_all(i)}
+				//if(i<4){queue.check_for_delete_all(i)}
 				continue
 			} else if(queue.List[i].Button_type == driver_module.BUTTON_COMMAND){
 				printc.Data_with_color(printc.COLOR_CYAN, "Treff: 2")
 				if(local_order){turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)}
 				continue
-			} else if(queue.List[i].Floor < queue.List[find].Floor && queue.List[i].Button_type == driver_module.BUTTON_CALL_UP){
+			} else if(find == -2){
+			}else if(queue.List[i].Floor < queue.List[find].Floor && queue.List[i].Button_type == driver_module.BUTTON_CALL_UP){
 				printc.Data_with_color(printc.COLOR_CYAN, "Treff: 4")
 				if(local_order){turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)}
 				continue
@@ -291,8 +305,10 @@ func (queue * Queue_list) queue_remove_multiple_floors(post Queue_post, local_or
 
 		previndex++
 	}
+	if(previndex < QUEUE_SIZE){for i := previndex; i< QUEUE_SIZE; i++ {queue.List[i].Floor = -1}}
+	
 
-	for i := previndex; i< QUEUE_SIZE; i++ {queue.List[i].Floor = -1}
+	queue.save_internal_orders_to_file()
 
 }
 
@@ -389,8 +405,15 @@ func (queue * Queue_list) get_insertion_cost(insert_floor int, insert_type drive
 
 	for i := range queue.List {
 
-		if(queue.List[i] == input_post){
-			break
+		if(queue.List[i].Floor == input_post.Floor){
+			if((queue.List[i].Button_type != input_post.Button_type) && queue.List[i].Button_type!=driver_module.BUTTON_COMMAND && input_post.Button_type!=driver_module.BUTTON_COMMAND){
+
+				cost += 1
+
+			} else if(queue.List[i].Button_type == input_post.Button_type){
+
+				break
+			}
 
 		}else if(queue.List[i].Floor == -1){
 			break

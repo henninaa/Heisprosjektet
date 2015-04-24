@@ -36,18 +36,7 @@ func Elev_init()(current_floor int){
 	if io_init() {
 		printc.Data_with_color(printc.COLOR_GREEN, "Elevator driver initialized...")
 	}
-	/*
-	fmt.Println("Going to first defined floor...\n")
-		Elev_start_engine(DOWN)
-		for{
-			current_floor = Elev_get_floor_sensor_signal()
-			if (current_floor != -1) {
-				Elev_stop_engine()
-				break
-			}
-		}
-	*/
-	
+
 	return 0
 }
 
@@ -67,11 +56,6 @@ func Elev_get_floor_sensor_signal() int {
 }
 
 func Elev_get_button_signal(button Elev_button_type_t, floor int) bool{
-	//assert(floor >= 0);
-	//assert(floor < N_FLOORS);
-	//assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS - 1));
-	//assert(!(button == BUTTON_CALL_DOWN && floor == 0));
-	//assert(button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND);
 	
 	if (io_read_bit(button_channel_matrix[floor][button])){
 		return true;
@@ -135,15 +119,13 @@ func Elev_set_stop_lamp(stop bool){
 
 
 func Elev_set_floor_indicator(floor int){
-	//assert(floor >= 0);
-	//assert(floor < N_FLOORS);
-	// Binary encoding. One light must always be on.
-	if ((floor) == 0x02){
+
+	if ((floor & 0x02) != 0){
 		io_set_bit(LIGHT_FLOOR_IND1);
 	}else{
 		io_clear_bit(LIGHT_FLOOR_IND1);
 	}
-	if (floor == 0x01){
+	if ((floor & 0x01) != 0){
 		io_set_bit(LIGHT_FLOOR_IND2);
 	}else{
 		io_clear_bit(LIGHT_FLOOR_IND2);
@@ -153,11 +135,6 @@ func Elev_set_floor_indicator(floor int){
 
 
 func Elev_set_button_lamp(button Elev_button_type_t, floor int, value int) {
-	//assert(floor >= 0);
-	//assert(floor < N_FLOORS);
-	//assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS - 1));
-	//assert(!(button == BUTTON_CALL_DOWN && floor == 0));
-	//assert(button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND);
 	
 	if (value == 1){
 		printc.Data_with_color(printc.COLOR_RED, "Floor: ",floor,"Button:",button)

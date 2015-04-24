@@ -37,7 +37,7 @@ func Elevator_main_control(){
 
 	//----------Main control loop
 
-	go_to_defined_floor(&elevator, sensor_channels)
+	go_to_defined_floor(&elevator, sensor_channels, event_channels)
 
 	var queue queue_module.Queue_type
 	queue.Init(elevator.floor)
@@ -66,9 +66,9 @@ func Elevator_main_control(){
 				auction_order(post, &queue, elevator.floor, internal_chan.insert_to_queue, network_channels.Send_to_one)
 
 			
-			case mail := <- internal_chan.order_executed:
-				handle_order_executed(mail, &queue)
-				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from internal_chan.order_executed")
+			case mail := <- internal_chan.remote_order_executed:
+				handle_remote_order_executed(mail, &queue)
+				printc.Data_with_color(printc.COLOR_GREEN, "Getting a message from internal_chan.remote_order_executed")
 
 			
 			case floor := <- sensor_channels.Floor_chan:
@@ -103,7 +103,7 @@ func Elevator_main_control(){
 			
 			case dead_elevator := <- network_channels.Get_dead_elevator:
 				printc.Data_with_color(printc.COLOR_RED, "Getting a message from network_channels.Get_dead_elevator: ", dead_elevator)
-				handle_dead_elevator(dead_elevator, &queue)
+				handle_dead_elevator(dead_elevator, &queue, elevator.floor)
 			
 			case mail :=<- internal_chan.take_backup_order:
 
@@ -135,7 +135,7 @@ func handle_network_messgage(mail network_module.Mail, internal_chan internal_ch
 
 	case network_module.ORDER_EXECUTED:
 
-		internal_chan.order_executed <- mail
+		internal_chan.remote_order_executed <- mail
 		printc.Data_with_color(printc.COLOR_GREEN, "ORDER_EXECUTED.MAIL ", mail)
 
 	case network_module.DELIVER_ORDER:
@@ -213,6 +213,7 @@ func handle_new_floor(floor_input int, current_floor * int, stop_check_chan chan
 		mail.Make_mail("", network_module.TAKE_BACKUP_FLOOR, floor_input, driver_module.BUTTON_COMMAND, 0)
 		send_to_all <- mail
 
+
 	}
 }
 
@@ -258,7 +259,7 @@ func convert_mail_to_backup_post(mail network_module.Mail, ip string)(backup_pos
 	return backup_post
 }
 
-func handle_order_executed(mail network_module.Mail, queue * queue_module.Queue_type){
+func handle_remote_order_executed(mail network_module.Mail, queue * queue_module.Queue_type){
 
 	post := queue_module.Convert_mail_to_queue_post(mail)
 
@@ -314,7 +315,7 @@ func make_new_action(queue * queue_module.Queue_type, elevator elevator_type, ev
 
 }
 
-func go_to_defined_floor(elevator * elevator_type, sensor_channels sensor_module.External_channels){
+func go_to_defined_floor(elevator * elevator_type, sensor_channels sensor_module.External_channels, event_channels FSM_module.External_channels){
 
 	var floor int
 	
@@ -331,12 +332,14 @@ func go_to_defined_floor(elevator * elevator_type, sensor_channels sensor_module
 	elevator.direction = -1
 	elevator.moving = false
 
+	event_channels.New_order <- 1
+
 }
 
 
-func handle_dead_elevator(dead_elevator string, queue * queue_module.Queue_type){
+func handle_dead_elevator(dead_elevator string, queue * queue_module.Queue_type, current_floor int){
 
-	queue.Remove_backup_with_IP(dead_elevator)
+	queue.Annex_backup(dead_elevator, current_floor)
 
 }
 

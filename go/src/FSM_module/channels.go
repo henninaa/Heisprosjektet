@@ -7,6 +7,8 @@ type internal_channels struct{
 	ascend chan int
 	descend chan int
 	stop chan int
+	breakdown_timer chan bool
+	breakdown_timer_abort chan bool
 }
 
 func (internal_chan * internal_channels) internal_channels_FSM_init(){
@@ -16,6 +18,8 @@ func (internal_chan * internal_channels) internal_channels_FSM_init(){
 	internal_chan.ascend = make(chan int,2)
 	internal_chan.descend = make(chan int,2)
 	internal_chan.stop  = make(chan int,2)
+	internal_chan.breakdown_timer = make(chan bool, 10)
+	internal_chan.breakdown_timer_abort = make(chan bool, 10)
 }
 
 type External_channels struct{

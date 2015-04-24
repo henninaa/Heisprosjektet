@@ -63,6 +63,10 @@ func Event_generator(external_chan_in External_channels){
 		case <- external_chan.New_order:
 
 			event_new_order(&state, internal_chan)
+
+		case <- internal_chan.breakdown_timer:
+
+			driver_module.Elev_stop_engine()
 		
 		}
 	}
@@ -71,7 +75,16 @@ func Event_generator(external_chan_in External_channels){
 func event_right_floor(state * int, internal_chan internal_channels){
 
 	state_machine(state, RIGHT_FLOOR_E, internal_chan)
+	
 	printc.Data_with_color(printc.COLOR_CYAN, "reached EVENT")
+
+	select{
+	case <- internal_chan.breakdown_timer_abort:
+		internal_chan.breakdown_timer_abort <- true
+	default:
+		internal_chan.breakdown_timer_abort <- true
+	}
+
 }
 
 func event_stop(state * int, internal_chan internal_channels){
@@ -86,6 +99,7 @@ func event_stop(state * int, internal_chan internal_channels){
 func event_ascend(state * int, internal_chan internal_channels){
 
 	driver_module.Elev_start_engine(driver_module.UP)
+	go breakdown_timer(internal_chan)
 	state_machine(state, ASCEND_E, internal_chan)
 }
 
@@ -93,6 +107,7 @@ func event_descend(state * int, internal_chan internal_channels){
 
 
 	driver_module.Elev_start_engine(driver_module.DOWN)
+	go breakdown_timer(internal_chan)
 	state_machine(state, DESCEND_E, internal_chan)
 }
 
@@ -131,6 +146,28 @@ func door_timer(internal_chan internal_channels){
 	case <- time.After(DOOR_TIMER):
 
 		internal_chan.close_door <- 1 
+
+	}
+
+}
+
+func breakdown_timer(internal_chan internal_channels){
+	printc.Data_with_color(printc.COLOR_CYAN, "Ja men dao var me her igjen")
+	
+	select{
+	case <- internal_chan.breakdown_timer_abort:
+	default:
+	}
+
+	select{
+
+	case <- time.After(BREAKDOWN_TIMER):
+
+		internal_chan.breakdown_timer <- true
+		printc.Data_with_color(printc.COLOR_CYAN, "No har da skjedd noke merkelig med heisen, han skulle jo ha vori her! BAD KOOOOODE!!!! CALL MAINANECECENEMENNENE" )
+
+	case <- internal_chan.breakdown_timer_abort:
+		printc.Data_with_color(printc.COLOR_CYAN, "Her er det ikke nøysamd med return")
 
 	}
 
