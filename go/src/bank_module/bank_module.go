@@ -159,13 +159,13 @@ func handle_network_messgage(mail network_module.Mail, internal_chan internal_ch
 	}
 }
 
-func handle_new_order(post queue_module.Queue_post, insert_to_queue chan queue_module.Queue_post, auction_order chan queue_module.Queue_post){
+func handle_new_order(order queue_module.Queue_post, insert_to_queue chan queue_module.Queue_post, auction_order chan queue_module.Queue_post){
 
-	if (post.Button_type == driver_module.BUTTON_COMMAND){
-		insert_to_queue <- post
+	if (order.Button_type == driver_module.BUTTON_COMMAND){
+		insert_to_queue <- order
 	} else{
 
-		auction_order <- post
+		auction_order <- order
 
 	}
 

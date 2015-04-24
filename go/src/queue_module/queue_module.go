@@ -343,10 +343,11 @@ func turn_off_lights(floor int, itype driver_module.Elev_button_type_t){
 
 func (queue * Queue_list) insert(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int, local_order bool){
 
-	local_order = true
 	var input_post Queue_post
 	input_post.Floor = insert_floor
 	input_post.Button_type = insert_type
+
+	if(insert_type != driver_module.BUTTON_COMMAND && local_order == false){local_order = true}
 
 	if(local_order){turn_on_light(insert_floor, insert_type)}
 
