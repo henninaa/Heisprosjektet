@@ -160,6 +160,7 @@ func Elev_set_button_lamp(button Elev_button_type_t, floor int, value int) {
 	//assert(button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND);
 	
 	if (value == 1){
+		printc.Data_with_color(printc.COLOR_RED, "Floor: ",floor,"Button:",button)
 		io_set_bit(lamp_channel_matrix[floor][button]);
 	}else{
 		io_clear_bit(lamp_channel_matrix[floor][button]);

@@ -6,14 +6,14 @@ import(
 
 type Queue_type struct{
 
-	queue queue_list
-	order_lights [4][3]bool
-	backup []queue_backup
+	Queue Queue_list
+	Order_lights [4][3]bool
+	Backup []queue_backup
 
 	}
 
-type queue_list struct{
-	list [QUEUE_SIZE]Queue_post
+type Queue_list struct{
+	List [QUEUE_SIZE]Queue_post
 }
 
 type Queue_post struct{
@@ -26,7 +26,7 @@ type Queue_post struct{
 type queue_backup struct{
 
 	IP string
-	queue queue_list
+	queue Queue_list
 	floor int
 
 }
@@ -35,20 +35,20 @@ func (queue * Queue_type) Init(current_floor int){
 
 	var j driver_module.Elev_button_type_t
 
-	queue.queue.list = Init_queue()
+	queue.Queue.List = Init_queue()
 
 	for i :=0; i<driver_module.N_FLOORS; i++{
 		for j = 0; j<driver_module.N_BUTTONS; j++{
-			queue.order_lights[i][j] = false
+			queue.Order_lights[i][j] = false
 			driver_module.Elev_set_button_lamp(j,i,0)
 		}
 	}
 
-	queue.queue.Get_previous_internal_queue(current_floor)
+	queue.Queue.Get_previous_internal_queue(current_floor)
 }
 
 func (backup * queue_backup) init(ip string){
 
-	backup.queue.list = Init_queue()
+	backup.queue.List = Init_queue()
 	backup.IP = ip
 }

@@ -17,17 +17,18 @@ func (queue_class * Queue_type) Insert_to_own_queue(post Queue_post, current_flo
 	insert_floor := post.Floor
 	insert_type := post.Button_type
 
-	queue_class.queue.insert(insert_floor, insert_type, current_floor, true)
+	queue_class.Queue.insert(insert_floor, insert_type, current_floor, true)
 
-	queue_class.queue.save_internal_orders_to_file()
+	queue_class.Queue.save_internal_orders_to_file()
+	printc.Data_with_color(printc.COLOR_MAGENTA, "I HAVE JUST WITTEN TO YOUR STUPID FILE!!!")
 
 }
 
 func (queue_class * Queue_type) Insert_to_backup_queue(insert_floor int, insert_type driver_module.Elev_button_type_t, ip string){
 
-	for i:= 0; i<len(queue_class.backup); i++{
-		if(queue_class.backup[i].IP == ip){
-			queue_class.backup[i].queue.insert(insert_floor, insert_type, queue_class.backup[i].floor, false)
+	for i:= 0; i<len(queue_class.Backup); i++{
+		if(queue_class.Backup[i].IP == ip){
+			queue_class.Backup[i].queue.insert(insert_floor, insert_type, queue_class.Backup[i].floor, false)
 			return
 		}
 	}
@@ -39,13 +40,13 @@ func (queue_class * Queue_type) Insert_to_backup_queue(insert_floor int, insert_
 
 func (queue_class * Queue_type) Send_backup_to_auction(IP string, order_chan chan Queue_post){
 
-	for i:= 0; i<len(queue_class.backup); i++{
-		if(queue_class.backup[i].IP == IP){
+	for i:= 0; i<len(queue_class.Backup); i++{
+		if(queue_class.Backup[i].IP == IP){
 			
-			for j := range queue_class.backup[i].queue.list{
+			for j := range queue_class.Backup[i].queue.List{
 
-				if(queue_class.backup[i].queue.list[j].Button_type != driver_module.BUTTON_COMMAND){
-					order_chan <- queue_class.backup[i].queue.list[j]
+				if(queue_class.Backup[i].queue.List[j].Button_type != driver_module.BUTTON_COMMAND){
+					order_chan <- queue_class.Backup[i].queue.List[j]
 				}
 			}
 
@@ -58,9 +59,9 @@ func (queue_class * Queue_type) Send_backup_to_auction(IP string, order_chan cha
 
 func (queue * Queue_type) New_backup_floor(floor int, ip string){
 
-		for i:= 0; i<len(queue.backup); i++{
-		if(queue.backup[i].IP == ip){
-			queue.backup[i].floor = floor
+		for i:= 0; i<len(queue.Backup); i++{
+		if(queue.Backup[i].IP == ip){
+			queue.Backup[i].floor = floor
 			return
 		}
 	}
@@ -82,9 +83,9 @@ func Init_queue()(queue [12]Queue_post){
 }
 
 func (queue_class * Queue_type) Get_new_direction(current_floor int) int{
-	if(queue_class.queue.list[0].Floor==-1 ){
+	if(queue_class.Queue.List[0].Floor==-1 ){
 		return -1
-	}else if(current_floor < queue_class.queue.list[0].Floor){
+	}else if(current_floor < queue_class.Queue.List[0].Floor){
 		return driver_module.UP
 	} else{
 		return driver_module.DOWN
@@ -94,25 +95,25 @@ func (queue_class * Queue_type) Get_new_direction(current_floor int) int{
 
 func (queue_class * Queue_type) Should_elevator_stop(current_floor int, direction driver_module.Elev_button_type_t, post * Queue_post) bool{
 
-	if(current_floor == queue_class.queue.list[0].Floor && queue_class.queue.list[0].Button_type == driver_module.BUTTON_COMMAND){
-		turn_off_lights(current_floor, queue_class.queue.list[0].Button_type)
+	if(current_floor == queue_class.Queue.List[0].Floor && queue_class.Queue.List[0].Button_type == driver_module.BUTTON_COMMAND){
+		turn_off_lights(current_floor, queue_class.Queue.List[0].Button_type)
 		post.Floor = current_floor
-		post.Button_type = queue_class.queue.list[0].Button_type
-		queue_class.queue.queue_remove_multiple_floors(queue_class.queue.list[0], true)
+		post.Button_type = queue_class.Queue.List[0].Button_type
+		queue_class.Queue.queue_remove_multiple_floors(queue_class.Queue.List[0], true)
 		
 		return true
-	}else if(current_floor == queue_class.queue.list[0].Floor && direction == driver_module.BUTTON_COMMAND){
-		turn_off_lights(current_floor, queue_class.queue.list[0].Button_type)
+	}else if(current_floor == queue_class.Queue.List[0].Floor && direction == driver_module.BUTTON_COMMAND){
+		turn_off_lights(current_floor, queue_class.Queue.List[0].Button_type)
 		post.Floor = current_floor
-		post.Button_type = queue_class.queue.list[0].Button_type
-		queue_class.queue.queue_remove_multiple_floors(queue_class.queue.list[0], true)
+		post.Button_type = queue_class.Queue.List[0].Button_type
+		queue_class.Queue.queue_remove_multiple_floors(queue_class.Queue.List[0], true)
 		
 		return true
-	} else if(current_floor == queue_class.queue.list[0].Floor && (queue_class.queue.list[0].Button_type == direction || queue_class.queue.list[1].Floor == -1)){
-		turn_off_lights(current_floor, queue_class.queue.list[0].Button_type)
+	} else if(current_floor == queue_class.Queue.List[0].Floor && (queue_class.Queue.List[0].Button_type == direction || queue_class.Queue.List[1].Floor == -1)){
+		turn_off_lights(current_floor, queue_class.Queue.List[0].Button_type)
 		post.Floor = current_floor
-		post.Button_type = queue_class.queue.list[0].Button_type
-		queue_class.queue.queue_remove_multiple_floors(queue_class.queue.list[0], true)
+		post.Button_type = queue_class.Queue.List[0].Button_type
+		queue_class.Queue.queue_remove_multiple_floors(queue_class.Queue.List[0], true)
 
 		return true
 	}
@@ -122,10 +123,10 @@ func (queue_class * Queue_type) Should_elevator_stop(current_floor int, directio
 func (queue * Queue_type) Remove_post_from_backup_queue(post Queue_post, ip string){
 
 
-	for i:= 0; i<len(queue.backup); i++{
-		if(queue.backup[i].IP == ip){
+	for i:= 0; i<len(queue.Backup); i++{
+		if(queue.Backup[i].IP == ip){
 
-			queue.backup[i].queue.queue_remove_multiple_floors(post, false)
+			queue.Backup[i].queue.queue_remove_multiple_floors(post, false)
 			
 
 		}
@@ -136,22 +137,22 @@ func (queue * Queue_type) Get_lowest_cost_ip(insert_post Queue_post, current_flo
 	lowest_cost := 999999
 	cost := -1
 
-	for i := range queue.backup{
+	for i := range queue.Backup{
 
-		cost = queue.backup[i].queue.get_insertion_cost(insert_post.Floor, insert_post.Button_type, queue.backup[i].floor)
+		cost = queue.Backup[i].queue.get_insertion_cost(insert_post.Floor, insert_post.Button_type, queue.Backup[i].floor)
 
-		printc.Data_with_color(printc.COLOR_BLACK, "				IP: ", queue.backup[i].IP)
+		printc.Data_with_color(printc.COLOR_BLACK, "				IP: ", queue.Backup[i].IP)
 		printc.Data_with_color(printc.COLOR_BLACK, "				COST: ", cost)
 		
 		if(cost < lowest_cost){
-			lowest_cost_ip = queue.backup[i].IP
+			lowest_cost_ip = queue.Backup[i].IP
 			lowest_cost = cost
 		}
 
 	}
-	printc.Data_with_color(printc.COLOR_BLACK, "Antall: ", len(queue.backup))
+	printc.Data_with_color(printc.COLOR_BLACK, "Antall: ", len(queue.Backup))
 
-	cost = queue.queue.get_insertion_cost(insert_post.Floor, insert_post.Button_type, current_floor)
+	cost = queue.Queue.get_insertion_cost(insert_post.Floor, insert_post.Button_type, current_floor)
 
 	if(cost <= lowest_cost){
 		lowest_cost_ip = "self"
@@ -181,22 +182,22 @@ func Convert_mail_to_queue_post(mail network_module.Mail)(order Queue_post){
 */
 func (queue * Queue_type) Remove_backup_with_IP(ip string){
 	
-	for i:= 0; i<len(queue.backup); i++{
-		if(queue.backup[i].IP == ip){
-			queue.backup = append(queue.backup[:i], queue.backup[i+1:]...)
+	for i:= 0; i<len(queue.Backup); i++{
+		if(queue.Backup[i].IP == ip){
+			queue.Backup = append(queue.Backup[:i], queue.Backup[i+1:]...)
 		}
 	}
 }
 
-func (internal_orders * queue_list) Get_previous_internal_queue(current_floor int) {
-	var backup_from_file queue_list
+func (internal_orders * Queue_list) Get_previous_internal_queue(current_floor int) {
+	var backup_from_file Queue_list
 	backup_from_file.get_internal_orders_from_file()
 
-	printc.Data_with_color(printc.COLOR_RED, "READING FROM FILE!!!!!!")
+	printc.Data_with_color(printc.COLOR_MAGENTA, "READING FROM FILE!!!!!!")
 
-	for _, order := range backup_from_file.list{
+	for _, order := range backup_from_file.List{
 
-		if(order.Button_type == driver_module.BUTTON_COMMAND){
+		if(order.Button_type == driver_module.BUTTON_COMMAND && order.Floor != -1){
 
 			internal_orders.insert(order.Floor, order.Button_type, current_floor, true)
 		}
@@ -205,7 +206,7 @@ func (internal_orders * queue_list) Get_previous_internal_queue(current_floor in
 
 func (queue * Queue_type) remove_backup(pos int){
 
-	queue.backup = append(queue.backup[:pos], queue.backup[pos+1:]...)
+	queue.Backup = append(queue.Backup[:pos], queue.Backup[pos+1:]...)
 
 }
 
@@ -215,15 +216,15 @@ func (queue * Queue_type) add_backup(ip string)(){
 
 	new_backup.IP = ip
 	new_backup.floor = -1
-	new_backup.queue.list = Init_queue()
+	new_backup.queue.List = Init_queue()
 
-	pos := len(queue.backup)
+	pos := len(queue.Backup)
 
-	queue.backup = append(queue.backup[:pos], new_backup)
+	queue.Backup = append(queue.Backup[:pos], new_backup)
 }
 
 
-func (queue * queue_list) insert_to_pos(insert_post Queue_post, position int){
+func (queue * Queue_list) insert_to_pos(insert_post Queue_post, position int){
 
 	var swap Queue_post
 	swap = insert_post
@@ -232,20 +233,20 @@ func (queue * queue_list) insert_to_pos(insert_post Queue_post, position int){
 
 	for i := position; i < QUEUE_SIZE; i++ {
 		
-		if(queue.list[i].Floor == -1){
-			queue.list[i] = swap
+		if(queue.List[i].Floor == -1){
+			queue.List[i] = swap
 			break
 		}
 
-		swap_tmp = queue.list[i]
-		queue.list[i] = swap
+		swap_tmp = queue.List[i]
+		queue.List[i] = swap
 		swap = swap_tmp
 
 	}
 
 }
 
-func (queue * queue_list) queue_remove_multiple_floors(post Queue_post, local_order bool){
+func (queue * Queue_list) queue_remove_multiple_floors(post Queue_post, local_order bool){
 
 	previndex :=0
 	find :=-2
@@ -253,11 +254,11 @@ func (queue * queue_list) queue_remove_multiple_floors(post Queue_post, local_or
 	
 	for i := 0; i < QUEUE_SIZE; i++ {
 
-		queue.list[previndex] = queue.list[i]
+		queue.List[previndex] = queue.List[i]
 
 		if(i == QUEUE_SIZE-1){
-			if(queue.list[i].Floor == post.Floor && (queue.list[i].Button_type == post.Button_type || queue.list[i].Button_type == driver_module.BUTTON_COMMAND)){
-				if(local_order){turn_off_lights(queue.list[i].Floor, queue.list[i].Button_type)}
+			if(queue.List[i].Floor == post.Floor && (queue.List[i].Button_type == post.Button_type || queue.List[i].Button_type == driver_module.BUTTON_COMMAND)){
+				if(local_order){turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)}
 				continue
 			}else{
 					previndex++
@@ -265,25 +266,25 @@ func (queue * queue_list) queue_remove_multiple_floors(post Queue_post, local_or
 			}
 		}
 
-		if(queue.list[i].Floor == post.Floor){
+		if(queue.List[i].Floor == post.Floor){
 
-			if(queue.list[i].Button_type == post.Button_type){
-				if(local_order){turn_off_lights(queue.list[i].Floor, queue.list[i].Button_type)}
+			if(queue.List[i].Button_type == post.Button_type){
+				if(local_order){turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)}
 				printc.Data_with_color(printc.COLOR_CYAN, "Treff: 1")
 				find = i +1
 				if(i<4){queue.check_for_delete_all(i)}
 				continue
-			} else if(queue.list[i].Button_type == driver_module.BUTTON_COMMAND){
+			} else if(queue.List[i].Button_type == driver_module.BUTTON_COMMAND){
 				printc.Data_with_color(printc.COLOR_CYAN, "Treff: 2")
-				if(local_order){turn_off_lights(queue.list[i].Floor, queue.list[i].Button_type)}
+				if(local_order){turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)}
 				continue
-			} else if(queue.list[i].Floor < queue.list[find].Floor && queue.list[i].Button_type == driver_module.BUTTON_CALL_UP){
+			} else if(queue.List[i].Floor < queue.List[find].Floor && queue.List[i].Button_type == driver_module.BUTTON_CALL_UP){
 				printc.Data_with_color(printc.COLOR_CYAN, "Treff: 4")
-				if(local_order){turn_off_lights(queue.list[i].Floor, queue.list[i].Button_type)}
+				if(local_order){turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)}
 				continue
-			} else if(queue.list[i].Floor > queue.list[find].Floor && queue.list[i].Button_type == driver_module.BUTTON_CALL_DOWN){
+			} else if(queue.List[i].Floor > queue.List[find].Floor && queue.List[i].Button_type == driver_module.BUTTON_CALL_DOWN){
 				printc.Data_with_color(printc.COLOR_CYAN, "Treff: 5")
-				if(local_order){turn_off_lights(queue.list[i].Floor, queue.list[i].Button_type)}
+				if(local_order){turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)}
 				continue
 			}
 		}
@@ -291,22 +292,22 @@ func (queue * queue_list) queue_remove_multiple_floors(post Queue_post, local_or
 		previndex++
 	}
 
-	for i := previndex; i< QUEUE_SIZE; i++ {queue.list[i].Floor = -1}
+	for i := previndex; i< QUEUE_SIZE; i++ {queue.List[i].Floor = -1}
 
 }
 
-func (queue * queue_list) check_for_delete_all(first_hit int){
+func (queue * Queue_list) check_for_delete_all(first_hit int){
 
-	if(first_hit<3 && queue.list[3].Floor==-1 && queue.list[0].Floor==queue.list[1].Floor){
-		if(first_hit < 2 && queue.list[2].Floor==-1){
+	if(first_hit<3 && queue.List[3].Floor==-1 && queue.List[0].Floor==queue.List[1].Floor){
+		if(first_hit < 2 && queue.List[2].Floor==-1){
 			for i:=0;i<2;i++{
-				turn_off_lights(queue.list[i].Floor, queue.list[i].Button_type)
-				queue.list[i].Floor=-1
+				turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)
+				queue.List[i].Floor=-1
 			}
-		}else if(first_hit == 2 && queue.list[1].Floor==queue.list[2].Floor){
+		}else if(first_hit == 2 && queue.List[1].Floor==queue.List[2].Floor){
 			for i:=0;i<3;i++{
-				turn_off_lights(queue.list[i].Floor, queue.list[i].Button_type)
-				queue.list[i].Floor=-1
+				turn_off_lights(queue.List[i].Floor, queue.List[i].Button_type)
+				queue.List[i].Floor=-1
 			}
 		}
 	}
@@ -324,7 +325,7 @@ func turn_off_lights(floor int, itype driver_module.Elev_button_type_t){
 
 }
 
-func (queue * queue_list) insert(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int, local_order bool){
+func (queue * Queue_list) insert(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int, local_order bool){
 
 	local_order = true
 	var input_post Queue_post
@@ -338,19 +339,19 @@ func (queue * queue_list) insert(insert_floor int, insert_type driver_module.Ele
 	prev := current_floor
 	var direction driver_module.Elev_button_type_t
 
-	for i := range queue.list {
+	for i := range queue.List {
 
-		if(queue.list[i] == input_post){
+		if(queue.List[i] == input_post){
 			break
 
-		}else if(queue.list[i].Floor == -1){
-			queue.list[i] = input_post
+		}else if(queue.List[i].Floor == -1){
+			queue.List[i] = input_post
 			break
 
-		}else if(prev < queue.list[i].Floor){
+		}else if(prev < queue.List[i].Floor){
 			direction = driver_module.BUTTON_CALL_UP
 
-			if(insert_floor < queue.list[i].Floor && insert_floor > prev){
+			if(insert_floor < queue.List[i].Floor && insert_floor > prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
 				queue.insert_to_pos(input_post, i)
 				break
@@ -361,7 +362,7 @@ func (queue * queue_list) insert(insert_floor int, insert_type driver_module.Ele
 		} else{
 			direction = driver_module.BUTTON_CALL_DOWN
 		
-			if(insert_floor > queue.list[i].Floor && insert_floor < prev){
+			if(insert_floor > queue.List[i].Floor && insert_floor < prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
 				queue.insert_to_pos(input_post, i)
 				break
@@ -369,13 +370,13 @@ func (queue * queue_list) insert(insert_floor int, insert_type driver_module.Ele
 			}
 		}
 
-		prev = queue.list[i].Floor
+		prev = queue.List[i].Floor
 
 	}
 	printc.Data_with_color(printc.COLOR_GREEN, "Queue_insert: Ferdig!")
 }
 
-func (queue * queue_list) get_insertion_cost(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int)(int){
+func (queue * Queue_list) get_insertion_cost(insert_floor int, insert_type driver_module.Elev_button_type_t, current_floor int)(int){
 
 
 	var input_post Queue_post
@@ -386,18 +387,18 @@ func (queue * queue_list) get_insertion_cost(insert_floor int, insert_type drive
 	prev := current_floor
 	var direction driver_module.Elev_button_type_t
 
-	for i := range queue.list {
+	for i := range queue.List {
 
-		if(queue.list[i] == input_post){
+		if(queue.List[i] == input_post){
 			break
 
-		}else if(queue.list[i].Floor == -1){
+		}else if(queue.List[i].Floor == -1){
 			break
 
-		}else if(prev < queue.list[i].Floor){
+		}else if(prev < queue.List[i].Floor){
 			direction = driver_module.BUTTON_CALL_UP
 
-			if(insert_floor < queue.list[i].Floor && insert_floor > prev){
+			if(insert_floor < queue.List[i].Floor && insert_floor > prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
 				break
 				}	
@@ -407,15 +408,15 @@ func (queue * queue_list) get_insertion_cost(insert_floor int, insert_type drive
 		} else{
 			direction = driver_module.BUTTON_CALL_DOWN
 		
-			if(insert_floor > queue.list[i].Floor && insert_floor < prev){
+			if(insert_floor > queue.List[i].Floor && insert_floor < prev){
 				if(insert_type == direction || insert_type == driver_module.BUTTON_COMMAND){
 				break
 				}	
 			}
 		}
 
-		cost += int(math.Abs(float64(prev - queue.list[i].Floor)))
-		prev = queue.list[i].Floor
+		cost += int(math.Abs(float64(prev - queue.List[i].Floor)))
+		prev = queue.List[i].Floor
 
 	}
 
@@ -424,7 +425,7 @@ func (queue * queue_list) get_insertion_cost(insert_floor int, insert_type drive
 	return cost
 }
 
-func (internal_queue * queue_list) save_internal_orders_to_file(){
+func (internal_queue * Queue_list) save_internal_orders_to_file(){
 	file, err := os.Create("internal_orders.gob")
 
 	if err != nil {
@@ -444,21 +445,22 @@ func (internal_queue * queue_list) save_internal_orders_to_file(){
 
 }
 
-func (internal_queue * queue_list) get_internal_orders_from_file(){
+func (internal_queue * Queue_list) get_internal_orders_from_file(){
 		
 	if _,err := os.Open("internal_orders.gob"); os.IsNotExist(err) {
-		printc.Data_with_color(printc.COLOR_RED,"Have some smartass studass deleted our file? You moron!!!")
+		printc.Data_with_color(printc.COLOR_MAGENTA,"Have some smartass studass deleted our file? You moron!!!")
 	}else{
 		file, err := os.Open("internal_orders.gob")
 
 		dec := gob.NewDecoder(file)
 
 		err = dec.Decode(&internal_queue)
-		printc.Data_with_color(printc.COLOR_RED,"I AM A STUPID READFUNCTION WHO CANNOT READ!!")
+		printc.Data_with_color(printc.COLOR_MAGENTA,"I AM A STUPID READFUNCTION WHO CANNOT READ!!")
 		if err != nil {
-			printc.Data_with_color(printc.COLOR_RED,"Decode error while reading from file: ", err)
+			printc.Data_with_color(printc.COLOR_MAGENTA,"Decode error while reading from file: ", err)
 			return
 		}
+		printc.Data_with_color(printc.COLOR_RED, "Decoded file: ", internal_queue)
 		file.Close()
 	}
 }
