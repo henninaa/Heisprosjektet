@@ -10,7 +10,7 @@ type internal_channels struct {
         close_conn       chan string
         error_IP         chan string
         connection_error chan string
-        delete_conn      chan string
+        //delete_conn      chan string
         quit_ima_send     chan bool
         quit_ima_listen   chan bool
         quit_ima_watcher  chan bool
@@ -25,7 +25,8 @@ type Net_channels struct {
         Send_to_one        chan Mail
         Inbox              chan Mail
         Num_of_peers       chan int
-        Panic              chan bool
+        //Panic              chan bool
+        I_am_dead          chan bool
         New_connection     chan string
 }
 
@@ -42,7 +43,7 @@ func (internal_chan *internal_channels) init() {
         internal_chan.connection_error = make(chan string)
         internal_chan.error_IP = make(chan string)
         internal_chan.close_conn = make(chan string)
-        internal_chan.delete_conn = make(chan string)
+        //internal_chan.delete_conn = make(chan string)
         internal_chan.quit_ima_send = make(chan bool)
         internal_chan.quit_ima_listen = make(chan bool)
         internal_chan.quit_ima_watcher = make(chan bool)
@@ -52,11 +53,12 @@ func (internal_chan *internal_channels) init() {
 
 func (external_chan *Net_channels) Init() {
         external_chan.Get_dead_elevator = make(chan string)
-        external_chan.Send_dead_elevator = make(chan string)
+        //external_chan.Send_dead_elevator = make(chan string)
         external_chan.Send_to_all = make(chan Mail)
         external_chan.Send_to_one = make(chan Mail)
         external_chan.Inbox = make(chan Mail)
         external_chan.Num_of_peers = make(chan int)
-        external_chan.Panic = make(chan bool)
+        external_chan.I_am_dead = make(chan bool)
+        //external_chan.Panic = make(chan bool)
         external_chan.New_connection = make(chan string)
 }

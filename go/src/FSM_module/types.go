@@ -15,7 +15,7 @@ const (
 //-------event
 
 const (
-	DOOR_TIMER = 100 * time.Millisecond
+	DOOR_TIMER = 500 * time.Millisecond
 	)
 
 const EVENT_INTERVAL = 20* time.Millisecond

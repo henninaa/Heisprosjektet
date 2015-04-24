@@ -31,7 +31,7 @@ type queue_backup struct{
 
 }
 
-func (queue * Queue_type) Init(){
+func (queue * Queue_type) Init(current_floor int){
 
 	var j driver_module.Elev_button_type_t
 
@@ -43,6 +43,8 @@ func (queue * Queue_type) Init(){
 			driver_module.Elev_set_button_lamp(j,i,0)
 		}
 	}
+
+	queue.queue.Get_previous_internal_queue(current_floor)
 }
 
 func (backup * queue_backup) init(ip string){

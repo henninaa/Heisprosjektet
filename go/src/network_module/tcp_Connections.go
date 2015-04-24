@@ -58,6 +58,7 @@ func (connections *conn_map) handle_new_connection(conn tcp_connection) {
                 printc.Data_with_color(printc.COLOR_GREEN,"network.monitorTCPConnections---> Connection made to ", conn.ip)
                 conn.sendChan = connections.tcp_map[conn.ip].send
                 conn.quit = connections.tcp_map[conn.ip].quit
+                external_chan.New_connection <- conn.ip
                 go conn.handle_connection()
                 go peer_update(len(connections.tcp_map))
         } else {

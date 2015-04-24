@@ -64,16 +64,16 @@ func ima_watcher() {
                                         delete(peers, ip)
                                 }
                         }
-                case deadIP := <-external_chan.Send_dead_elevator:
+                /*case deadIP := <-external_chan.Send_dead_elevator:
                         internal_chan.close_conn <- deadIP
-                        delete(peers, deadIP)
-                case errorIP := <-internal_chan.error_IP:
+                        delete(peers, deadIP)*/
+                /*case errorIP := <-internal_chan.error_IP:
                         printc.Data_with_color(printc.COLOR_CYAN,"I DID PASS!!!")
                         _, inMap := peers[errorIP]
                         if inMap {
                                 printc.Data_with_color(printc.COLOR_CYAN,"You are giving me a panicattack!! FUCK YOU")
                                 external_chan.Panic <- true
-                        }
+                        }*/
                 case <-internal_chan.quit_ima_watcher:
                         return
                 }
