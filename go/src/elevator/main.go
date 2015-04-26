@@ -2,7 +2,7 @@ package main
 
 import(
 	"driver_module"
-	"bank_module"
+	"control_module"
 	"os"
 	"os/signal"
 	)
@@ -14,7 +14,7 @@ func main(){
 
 	driver_module.Elev_init()
 	
-	go bank_module.Elevator_main_control()
+	go control_module.Elevator_main_control()
 
 	<- c
 	driver_module.Elev_stop_engine()

@@ -1,4 +1,4 @@
-package bank_module
+package control_module
 
 import(
 	"queue_module"
