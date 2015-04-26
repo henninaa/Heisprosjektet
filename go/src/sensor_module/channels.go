@@ -8,6 +8,8 @@ type External_channels struct {
 	Floor_chan chan int
 	Order_chan chan queue_module.Queue_post
 	Obstruction_chan chan bool
+	Activate_orders chan bool
+	Deactivate_orders chan bool
 
 }
 
@@ -17,5 +19,7 @@ func (sensor_chan * External_channels) Init(){
 	sensor_chan.Floor_chan = make(chan int, 1)
 	sensor_chan.Order_chan = make(chan queue_module.Queue_post, 40)
 	sensor_chan.Obstruction_chan = make(chan bool, 1)
+	sensor_chan.Activate_orders = make(chan bool)
+	sensor_chan.Deactivate_orders = make(chan bool)
 
 }

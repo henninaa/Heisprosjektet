@@ -32,6 +32,11 @@ type External_channels struct{
 	Get_new_direction chan int
 	Get_new_action chan int
 	Get_should_stop chan int
+	Engine_error chan int
+	Abort_light_show chan bool
+	Too_far_down chan int
+	Too_far_up chan int
+	New_dir chan int
 }
 
 func (external_chan * External_channels) Init(){
@@ -44,4 +49,9 @@ func (external_chan * External_channels) Init(){
 	external_chan.Get_new_action = make(chan int,2)
 	external_chan.Get_should_stop = make(chan int,2)
 	external_chan.Get_new_direction = make(chan int,2)
+	external_chan.Engine_error = make(chan int, 2)
+	external_chan.Abort_light_show = make(chan bool)
+	external_chan.Too_far_up = make(chan int, 2)
+	external_chan.Too_far_down = make(chan int, 2)
+	external_chan.New_dir = make(chan int, 2)
 }

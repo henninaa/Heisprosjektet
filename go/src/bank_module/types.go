@@ -26,4 +26,4 @@ func (elevator * elevator_type) elevator_type_init(){
 	elevator.moving = false
 }
 
-const ELEVATOR_MAIN_CONTROL_INTERVAL = 20 * time.Millisecond
+const ELEVATOR_MAIN_CONTROL_INTERVAL = 10 * time.Millisecond

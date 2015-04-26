@@ -11,7 +11,7 @@ func Sensors(sensor_chan External_channels){
 
 	go stop_sensor(sensor_chan.Stop_chan)
 	go floor_sensors(sensor_chan.Floor_chan)
-	go order_buttons(sensor_chan.Order_chan)
+	go order_buttons(sensor_chan.Order_chan, sensor_chan.Activate_orders, sensor_chan.Deactivate_orders)
 	go obstruction_sensor(sensor_chan.Obstruction_chan)
 	//go Self_destruction()
 
@@ -101,7 +101,7 @@ func Floor_sensors()int{
 	}
 }*/
 
-func order_buttons(order_chan chan queue_module.Queue_post){
+func order_buttons(order_chan chan queue_module.Queue_post, activate_orders chan bool, deactivate_orders chan bool){
 
 	var hold [driver_module.N_BUTTONS][driver_module.N_FLOORS]bool
 
@@ -114,10 +114,18 @@ func order_buttons(order_chan chan queue_module.Queue_post){
 
 	for{
 
-		time.Sleep(ORDER_SENSORS_INTERVAL)
-		check_command_orders(&(hold[0]), order_chan)
-		check_up_orders(&(hold[1]), order_chan)
-		check_down_orders(&(hold[2]), order_chan)
+		select{
+		case <- deactivate_orders:
+			<- activate_orders
+		default:
+			time.Sleep(ORDER_SENSORS_INTERVAL)
+			check_command_orders(&(hold[0]), order_chan)
+			check_up_orders(&(hold[1]), order_chan)
+			check_down_orders(&(hold[2]), order_chan)
+
+		}
+
+
 
 
 	}

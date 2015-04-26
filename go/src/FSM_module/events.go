@@ -64,9 +64,19 @@ func Event_generator(external_chan_in External_channels){
 
 			event_new_order(&state, internal_chan)
 
+		case <- external_chan.Too_far_up:
+
+			event_too_far_up(&state, internal_chan)
+
+		case <- external_chan.Too_far_down:
+
+			event_too_far_down(&state, internal_chan)
+
 		case <- internal_chan.breakdown_timer:
 
-			driver_module.Elev_stop_engine()
+			event_engine_error(internal_chan)
+
+	
 		
 		}
 	}
@@ -99,16 +109,16 @@ func event_stop(state * int, internal_chan internal_channels){
 func event_ascend(state * int, internal_chan internal_channels){
 
 	driver_module.Elev_start_engine(driver_module.UP)
-	go breakdown_timer(internal_chan)
 	state_machine(state, ASCEND_E, internal_chan)
+	external_chan.New_dir <- driver_module.UP
 }
 
 func event_descend(state * int, internal_chan internal_channels){
 
 
 	driver_module.Elev_start_engine(driver_module.DOWN)
-	go breakdown_timer(internal_chan)
 	state_machine(state, DESCEND_E, internal_chan)
+	external_chan.New_dir <- driver_module.DOWN
 }
 
 func event_open_door(state * int, internal_chan internal_channels){
@@ -178,4 +188,19 @@ func event_new_order(state * int, internal_chan internal_channels){
 	state_machine(state, NEW_ORDER_E, internal_chan)
 
 	printc.Data_with_color(printc.COLOR_CYAN, "new direction EVENT")
+}
+
+func event_engine_error(internal_chan internal_channels){
+	external_chan.Engine_error <- 1
+	driver_module.Elev_stop_engine()
+}
+
+func event_too_far_up(state * int, internal_chan internal_channels){
+
+	state_machine(state, TOO_FAR_UP_E, internal_chan)
+}
+
+func event_too_far_down(state * int, internal_chan internal_channels){
+
+	state_machine(state, TOO_FAR_DOWN_E, internal_chan)
 }

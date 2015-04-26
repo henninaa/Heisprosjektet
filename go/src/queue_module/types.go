@@ -28,6 +28,7 @@ type queue_backup struct{
 	IP string
 	queue Queue_list
 	floor int
+	engine_running bool
 
 }
 
@@ -51,4 +52,5 @@ func (backup * queue_backup) init(ip string){
 
 	backup.queue.List = Init_queue()
 	backup.IP = ip
+	backup.engine_running = true
 }

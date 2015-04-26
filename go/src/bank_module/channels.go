@@ -14,6 +14,9 @@ type internal_channels struct{
 	remote_order_executed chan network_module.Mail
 	check_stop_conditions chan int
 	take_backup_floor chan network_module.Mail
+	lost_engine_on_network chan string
+	abort_light_show chan bool
+	engine_recovery_on_network chan string
 }
 
 func (intern_chan * internal_channels) init(){
@@ -25,6 +28,9 @@ func (intern_chan * internal_channels) init(){
 	intern_chan.new_direction = make(chan int,10)
 	intern_chan.remote_order_executed = make(chan network_module.Mail,10)
 	intern_chan.check_stop_conditions = make(chan int,10)
+	intern_chan.lost_engine_on_network  = make(chan string, 10)
+	intern_chan.abort_light_show = make(chan bool,1)
+	intern_chan.engine_recovery_on_network = make(chan string, 10)
 
 }
 

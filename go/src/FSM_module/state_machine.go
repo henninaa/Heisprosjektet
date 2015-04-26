@@ -38,11 +38,13 @@ func idle_state(state * int,event int, internal_chan internal_channels){
 
 		*state = moving
 		internal_chan.descend <- 1
+		go breakdown_timer(internal_chan)
 
 	case NEW_DIRECTION_UP_E:
 
 		*state = moving
 		internal_chan.ascend <- 1
+		go breakdown_timer(internal_chan)
 
 	case RIGHT_FLOOR_E:
 
@@ -74,6 +76,13 @@ func moving_state(state * int, event int, internal_chan internal_channels){
 
 		internal_chan.stop <- 1
 		*state = door_open
+	
+	case TOO_FAR_DOWN_E:
+		internal_chan.ascend <- 1
+
+	case TOO_FAR_UP_E:
+		internal_chan.descend <- 1
+
 	}
 }
 

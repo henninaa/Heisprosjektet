@@ -28,6 +28,11 @@ func (queue_class * Queue_type) Insert_to_backup_queue(insert_floor int, insert_
 
 	for i:= 0; i<len(queue_class.Backup); i++{
 		if(queue_class.Backup[i].IP == ip){
+
+			if(queue_class.Backup[i].engine_running == false){
+				return
+			}
+
 			queue_class.Backup[i].queue.insert(insert_floor, insert_type, queue_class.Backup[i].floor, false)
 			return
 		}
@@ -216,6 +221,69 @@ func (internal_orders * Queue_list) Get_previous_internal_queue(current_floor in
 	}
 }
 
+func (queue * Queue_type) Delete_local_orders(){
+
+	var j driver_module.Elev_button_type_t
+
+	queue.Queue.List = Init_queue()
+
+	for i :=0; i<driver_module.N_FLOORS; i++{
+		for j = 0; j<driver_module.N_BUTTONS; j++{
+			queue.Order_lights[i][j] = false
+			driver_module.Elev_set_button_lamp(j,i,0)
+		}
+	}
+}
+
+func (queue * Queue_type) Engine_failed(IP string){
+
+	for i := range queue.Backup{
+		if(IP==queue.Backup[i].IP){
+			queue.Backup[i].engine_running = false
+			break
+		}
+	}
+}
+
+func (queue * Queue_type) Engine_recovered(IP string){
+	
+	for i := range queue.Backup{
+		if(IP==queue.Backup[i].IP){
+			queue.Backup[i].engine_running = true
+			break
+		}
+	}
+}
+
+func (queue * Queue_type) Going_too_far_up(floor int, direction int)bool{
+	printc.Data_with_color(printc.COLOR_RED, "UPCHECK")
+
+	if(floor == 3 && direction == driver_module.UP){
+		printc.Data_with_color(printc.COLOR_RED, "UPHIT")
+		return true
+	}else if (queue.Queue.List[0].Floor < floor && direction ==  driver_module.UP){
+		printc.Data_with_color(printc.COLOR_RED, "UPHIT")
+		return true
+	}
+
+	return false
+
+}
+
+func (queue * Queue_type) Going_too_far_down(floor int, direction int)bool{
+	printc.Data_with_color(printc.COLOR_RED, "DOWNCHECK", floor, direction)
+	if(floor == 0 && direction == driver_module.DOWN) {
+		printc.Data_with_color(printc.COLOR_RED, "DOWNCHIT")
+		return true
+	}else if (queue.Queue.List[0].Floor > floor && direction ==  driver_module.DOWN){
+		printc.Data_with_color(printc.COLOR_RED, "DOWNHIT")
+		return true
+	}
+
+	return false
+
+}
+
 func (queue * Queue_type) remove_backup(pos int){
 
 	queue.Backup = append(queue.Backup[:pos], queue.Backup[pos+1:]...)
@@ -228,6 +296,7 @@ func (queue * Queue_type) add_backup(ip string)(){
 
 	new_backup.IP = ip
 	new_backup.floor = -1
+	new_backup.engine_running = true
 	new_backup.queue.List = Init_queue()
 
 	pos := len(queue.Backup)
