@@ -14,6 +14,8 @@ const QUEUE_SIZE = 12
 
 func (queue_class * Queue_type) Insert_to_own_queue(post Queue_post, current_floor int){
 
+
+
 	insert_floor := post.Floor
 	insert_type := post.Button_type
 
@@ -21,7 +23,7 @@ func (queue_class * Queue_type) Insert_to_own_queue(post Queue_post, current_flo
 
 	queue_class.Queue.save_internal_orders_to_file()
 	printc.Data_with_color(printc.COLOR_MAGENTA, "I HAVE JUST WITTEN TO YOUR STUPID FILE!!!")
-
+	printc.Data_with_color(printc.COLOR_GREEN, "-------------------------", queue_class.Queue.List)
 }
 
 func (queue_class * Queue_type) Insert_to_backup_queue(insert_floor int, insert_type driver_module.Elev_button_type_t, ip string){
@@ -111,6 +113,15 @@ func (queue_class * Queue_type) Get_new_direction(current_floor int) int{
 }
 
 func (queue_class * Queue_type) Should_elevator_stop(current_floor int, direction driver_module.Elev_button_type_t, post * Queue_post) bool{
+
+	if(current_floor== queue_class.Queue.List[0].Floor){
+			turn_off_lights(current_floor, queue_class.Queue.List[0].Button_type)
+		post.Floor = current_floor
+		post.Button_type = queue_class.Queue.List[0].Button_type
+		queue_class.Queue.queue_remove_multiple_floors(queue_class.Queue.List[0], true)
+		
+		return true
+	}
 
 	if(current_floor == queue_class.Queue.List[0].Floor && queue_class.Queue.List[0].Button_type == driver_module.BUTTON_COMMAND){
 		turn_off_lights(current_floor, queue_class.Queue.List[0].Button_type)
@@ -268,9 +279,12 @@ func (queue * Queue_type) Going_too_far_up(floor int, direction int)bool{
 
 	return false
 
+	return false
+
 }
 
 func (queue * Queue_type) Going_too_far_down(floor int, direction int)bool{
+
 	printc.Data_with_color(printc.COLOR_RED, "DOWNCHECK", floor, direction)
 	if(floor == 0 && direction == driver_module.DOWN) {
 		printc.Data_with_color(printc.COLOR_RED, "DOWNCHIT")
@@ -279,6 +293,7 @@ func (queue * Queue_type) Going_too_far_down(floor int, direction int)bool{
 		printc.Data_with_color(printc.COLOR_RED, "DOWNHIT")
 		return true
 	}
+
 
 	return false
 
